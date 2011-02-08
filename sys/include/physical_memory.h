@@ -1,8 +1,8 @@
 #ifndef COMMON_PHYSICAL_MEMORY_H
 #define COMMON_PHYSICAL_MEMORY_H
 
-#include <common/types.h>
-#include <config.h>
+#include "types.h"
+#include "sysconf.h"
 
 /* Defines the outward facing interface for any arch-specific physical memory
  * functionality.  This api is implemented by the arch-specific stuff

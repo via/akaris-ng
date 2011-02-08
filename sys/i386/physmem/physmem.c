@@ -3,8 +3,9 @@
  * Implements the functions in physical_memory.h
  */
 
-#include <i386/physmem/physmem.h>
-#include <common/assert.h>
+#include "physical_memory.h"
+#include "physmem.h"
+#include "assert.h"
 
 #ifdef HOSTED
 #include <stdio.h>
