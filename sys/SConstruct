@@ -1,0 +1,19 @@
+Import('*')
+
+libs = Glob('lib/*.[cs]') 
+i686src = Glob('i686/*.[sc]')
+
+includepaths = [ '.', 'include/']
+
+
+sources = libs
+
+if architecture == "i686":
+  sources.extend(i686src)
+
+
+objects = []
+for item in sources:
+  objects += env.Object(item, CPPPATH=includepaths)
+
+env.Kernel('kernel', objects)

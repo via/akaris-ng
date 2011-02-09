@@ -1,1 +1,0 @@
-SUBDIRS = i386 lib

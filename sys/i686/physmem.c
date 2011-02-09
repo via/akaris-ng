@@ -15,6 +15,11 @@
 static physmem_memregion_t phys_regions[MAX_PHYS_REGIONS];
 static uint32 init_bitmap[PAGE_SIZE / sizeof (uint32)];
 
+void
+start() {
+  while (1);
+}
+
 uint32 
 physmem_page_size () {
   return PAGE_SIZE;
