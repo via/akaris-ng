@@ -4,6 +4,7 @@ SECTIONS{
     . = 0x00100000;
 
     .text :{
+        sys/i686/start.o
         *(.text)
     }
 
