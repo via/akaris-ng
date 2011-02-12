@@ -30,7 +30,7 @@ env.Append(BUILDERS={'Kernel' : blder})
 env.Replace(CC='%s-gcc' % toolsprefix)
 env.Replace(LD='%s-ld' % toolsprefix)
 env.Replace(AS='%s-as' % toolsprefix)
-env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89")
+env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89 -Wall -Werror")
 env.Replace(LDSCRIPT='sys/scripts/%s.ld' % architecture)
 if debug:
   env.Append(CFLAGS="-g")

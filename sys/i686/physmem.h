@@ -2,8 +2,9 @@
 #define I386_PHYSMEM_H
 
 #define PAGE_SIZE 4096
+#define MAX_REGIONS 16
 
-typedef struct physmem_memregion {
+struct physmem_memregion {
 
   physaddr_t bitmap_phys;
   uint32 * bitmap;
@@ -14,10 +15,11 @@ typedef struct physmem_memregion {
 
   uint8 node;
 
-} physmem_memregion_t;
+};
 
-
-
-
+struct physmem_i686 {
+  struct physmem phys;
+  physmem_memregion regions[MAX_REGIONS];
+};
 
 #endif

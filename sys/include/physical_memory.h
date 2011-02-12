@@ -15,6 +15,10 @@ typedef uint32 physaddr_t;
 typedef uint64 physaddr_t;
 #endif
 
+struct physmem_stats;
+struct physmem;
+struct physmem_vfuncs;
+
 typedef enum {
   PHYSMEM_SUCCESS,
   PHYSMEM_ERR_MEMUSED,
@@ -27,21 +31,29 @@ typedef enum {
   PHYSMEM_FREE = 0,
 } physmem_stat_t;
 
+struct physmem_stats {
+  unsigned int kernel_pages;
+  unsigned int free_pages;
+};
 
-/* Function API */
-physmem_error_t physmem_initialize ();
-physmem_error_t physmem_add_memory_region (uint8 node, physaddr_t startaddress, size_t length);
-physmem_error_t physmem_change_node (uint8 newnode, physaddr_t region_start, size_t length);
-physmem_error_t physmem_change_status (physmem_stat_t mode, physaddr_t start, size_t length);
-physmem_error_t physmem_delete_region (physaddr_t region_start, size_t length);
+struct physmem {
+  const char *name;
+  unsigned int nodes;
+  struct physmem_vfuncs *v;
+};
 
-physmem_error_t physmem_allocate_page (uint8 node, physaddr_t *address);
-physmem_error_t physmem_deallocate_page (physaddr_t address);
+struct physmem_vfuncs {
 
+  /* Function API */
+  physmem_error_t (*physmem_page_alloc)(uint8 node, physaddr_t *address);
+  physmem_error_t (*physmem_page_free)(physaddr_t address);
+  struct physmem_stats (*physmem_stats_get)();
+  uint32 physmem_page_size ();
+
+};
 
 
 /* Helpers */
-uint32 physmem_page_size ();
 
 
 
