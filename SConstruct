@@ -5,7 +5,7 @@ import shutil
 
 
 def build_kernel(source, target, env, for_signature):
-  return '%s -T %s -o %s %s' % (env['LD'], env['LDSCRIPT'], " ".join(map(str,
+  return '%s -g -T %s -o %s %s' % (env['LD'], env['LDSCRIPT'], " ".join(map(str,
   target)) , " ".join(map(str, source)))
 
   
@@ -30,7 +30,8 @@ env.Append(BUILDERS={'Kernel' : blder})
 env.Replace(CC='%s-gcc' % toolsprefix)
 env.Replace(LD='%s-ld' % toolsprefix)
 env.Replace(AS='%s-as' % toolsprefix)
-env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89 -Wall -Werror")
+env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89 -Wall -Werror -O0")
+
 env.Replace(LDSCRIPT='sys/scripts/%s.ld' % architecture)
 if debug:
   env.Append(CFLAGS="-g")

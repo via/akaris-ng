@@ -3,13 +3,14 @@ Import('*')
 libs = Glob('lib/*.[cs]') 
 i686src = Glob('i686/*.[sc]')
 
-includepaths = [ '.', 'include/']
+includepaths = [ '.', 'include/', 'lib/']
 
 
 sources = libs
 
 if architecture == "i686":
   sources.extend(i686src)
+  env.Append(CFLAGS=" -fstack-protector-all")
 
 
 objects = []
