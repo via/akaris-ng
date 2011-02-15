@@ -3,9 +3,14 @@
 #include "strfuncs.h"
 #include "bootvideo.h"
 
+#include "kernel.h"
+#include "physmem.h"
+
 #define T_STACK_SIZE 1024
 
 static char t_stack[T_STACK_SIZE] __attribute__((aligned(4)));
+
+static struct kernel i686_kernel;
 
 
 void
@@ -13,6 +18,8 @@ i686_kmain(unsigned long magic, multiboot_header_t *info) {
 
   bootvideo_cls();
   bootvideo_puts("Hello, World");
+
+  i686_kernel.phys = (struct physmem *)i686_physmem_alloc(info);
 
 
 
@@ -33,3 +40,6 @@ start() {
   while (1);
 
 }
+
+
+

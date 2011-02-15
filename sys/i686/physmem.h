@@ -1,6 +1,8 @@
 #ifndef I386_PHYSMEM_H
 #define I386_PHYSMEM_H
 
+#include "physical_memory.h"
+
 #define PAGE_SIZE 4096
 #define MAX_REGIONS 16
 
@@ -17,9 +19,11 @@ struct physmem_memregion {
 
 };
 
-struct physmem_i686 {
+struct i686_physmem {
   struct physmem phys;
-  physmem_memregion regions[MAX_REGIONS];
+  struct physmem_memregion regions[MAX_REGIONS];
 };
+
+struct i686_physmem *i686_physmem_alloc(multiboot_header_t *);
 
 #endif

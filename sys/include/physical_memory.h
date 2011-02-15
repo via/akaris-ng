@@ -48,7 +48,7 @@ struct physmem_vfuncs {
   physmem_error_t (*physmem_page_alloc)(uint8 node, physaddr_t *address);
   physmem_error_t (*physmem_page_free)(physaddr_t address);
   struct physmem_stats (*physmem_stats_get)();
-  uint32 physmem_page_size ();
+  uint32 (*physmem_page_size)();
 
 };
 
