@@ -10,7 +10,7 @@ sources = libs
 
 if architecture == "i686":
   sources.extend(i686src)
-  env.Append(CFLAGS=" -fstack-protector-all")
+  env.Append(CFLAGS=" -fstack-protector")
 
 
 objects = []

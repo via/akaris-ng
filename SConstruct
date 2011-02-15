@@ -5,7 +5,7 @@ import shutil
 
 
 def build_kernel(source, target, env, for_signature):
-  return '%s -g -T %s -o %s %s' % (env['LD'], env['LDSCRIPT'], " ".join(map(str,
+  return '%s -ggdb -T %s -o %s %s' % (env['LD'], env['LDSCRIPT'], " ".join(map(str,
   target)) , " ".join(map(str, source)))
 
   
@@ -19,6 +19,7 @@ toolsprefix = ARGUMENTS.get('prefix')
 
 if architecture == None:
   architecture = "i686"
+  debug="true"
 if toolsprefix == None:
   toolsprefix = '%s-elf' % architecture
 
@@ -34,7 +35,7 @@ env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89 -Wall -Werror
 
 env.Replace(LDSCRIPT='sys/scripts/%s.ld' % architecture)
 if debug:
-  env.Append(CFLAGS="-g")
+  env.Append(CFLAGS="-ggdb")
 
 Export('architecture env debug toolsprefix')
 

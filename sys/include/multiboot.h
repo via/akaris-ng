@@ -58,7 +58,7 @@ typedef struct multiboot_header
   unsigned long load_end_addr;
   unsigned long bss_end_addr;
   unsigned long entry_addr;
-} multiboot_header_t;
+} __attribute__((aligned(4))) multiboot_header_t;
 
 /* The symbol table for a.out. */
 typedef struct aout_symbol_table
