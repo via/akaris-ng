@@ -7,7 +7,7 @@
 #define ASSERT(x) if ( !(x) ) { printf("Assertion failed!, Line %d, File %s\n", \
     __LINE__, __FILE__); while (1); }
 #else
-#define ASSERT(x)
+#define ASSERT(x) do { if( !(x) ) while(1); } while(0);
 #endif
 
 #endif

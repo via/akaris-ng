@@ -1,12 +1,14 @@
 Import('*')
 
 libs = Glob('lib/*.[cs]') 
+common = Glob('common/*.c')
 i686src = Glob('i686/*.[sc]')
 
 includepaths = [ '.', 'include/', 'lib/']
 
 
 sources = libs
+sources += common
 
 if architecture == "i686":
   sources.extend(i686src)
