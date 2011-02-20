@@ -16,10 +16,11 @@ static struct kernel i686_kernel;
 void
 i686_kmain(unsigned long magic, multiboot_header_t *info) {
 
+
   bootvideo_cls();
   bootvideo_puts("Hello, World");
 
-  i686_kernel.phys = (struct physmem *)i686_physmem_alloc(info);
+  i686_kernel.phys = (struct physmem *)i686_physmem_alloc(&i686_kernel, info);
 
 
 

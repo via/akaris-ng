@@ -19,6 +19,7 @@ typedef uint64 physaddr_t;
 struct physmem_stats;
 struct physmem;
 struct physmem_vfuncs;
+struct kernel;
 
 typedef enum {
   PHYSMEM_SUCCESS,
@@ -39,36 +40,43 @@ struct physmem_stats {
 
 struct physmem_region {
   uint32 *bitmap;
-  uint32 free_pages, used_pages;
+  uint32 free_pages, used_pages, bitmap_length;
   physaddr_t start_address;
 
   SLIST_ENTRY(physmem_region) regions;
 };
 
-struct physmem {
-  const char *name;
-  unsigned int num_nodes;
-  struct physmem_vfuncs *v;
-  SLIST_HEAD(, physmem_region) regionlist;
-};
-
 struct physmem_vfuncs {
 
   /* Function API */
-  physmem_error_t (*page_alloc)(uint8 node, physaddr_t address);
-  physmem_error_t (*page_free)(physaddr_t address);
-  struct physmem_stats (*stats_get)();
-  uint32 (*page_size)();
+  physmem_error_t (*page_alloc)(struct physmem *, uint8 node, 
+      physaddr_t *address);
+  physmem_error_t (*page_free)(struct physmem *, physaddr_t address);
+  struct physmem_stats (*stats_get)(struct physmem *);
+  uint32 (*page_size)(struct physmem *);
 
-  physmem_error_t (*region_add)(uint8 node, physaddr_t start, physaddr_t end);
+  physmem_error_t (*region_add)(struct physmem *, uint8 node, 
+      physaddr_t start, physaddr_t end);
 
 };
 
+struct physmem {
+  struct kernel *parent;
+  const char *name;
+  unsigned int num_nodes;
+  struct physmem_vfuncs v;
+  SLIST_HEAD(, physmem_region) regionlist;
+};
 
-/* Helpers */
-physmem_stat_t physmem_block_status(uint32 *bitmap, uint32 size, uint32 blocknum);
-physmem_stat_t physmem_block_set(uint32 *bitmap, uint32 size, 
-    uint32 blocknum, physmem_stat_t value);
+
+
+/* Base implementations */
+physmem_error_t physmem_page_alloc(struct physmem *, uint8, physaddr_t *);
+physmem_error_t physmem_page_free(struct physmem *, physaddr_t);
+struct physmem_stats physmem_stats_get(struct physmem * );
+uint32 physmem_page_size(struct physmem *);
+physmem_error_t physmem_region_add(struct physmem *, uint8, 
+    physaddr_t, physaddr_t);
 
 
 #endif

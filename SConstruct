@@ -20,17 +20,19 @@ toolsprefix = ARGUMENTS.get('prefix')
 if architecture == None:
   architecture = "i686"
   debug="true"
+if architecture == "test":
+  toolsprefix = ''
 if toolsprefix == None:
-  toolsprefix = '%s-elf' % architecture
+  toolsprefix = '%s-elf-' % architecture
 
 blder = Builder(generator = build_kernel, suffix=".k")
 
 env = Environment()
 env.Append(ENV=os.environ)
 env.Append(BUILDERS={'Kernel' : blder})
-env.Replace(CC='%s-gcc' % toolsprefix)
-env.Replace(LD='%s-ld' % toolsprefix)
-env.Replace(AS='%s-as' % toolsprefix)
+env.Replace(CC='%sgcc' % toolsprefix)
+env.Replace(LD='%sld' % toolsprefix)
+env.Replace(AS='%sas' % toolsprefix)
 env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89 -Wall -Werror -O0")
 
 env.Replace(LDSCRIPT='sys/scripts/%s.ld' % architecture)

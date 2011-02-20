@@ -10,6 +10,8 @@ typedef signed char       int8;
  
 typedef signed long offset_t;
 typedef unsigned long size_t;
+
+#define NULL 0
  
 
 #endif

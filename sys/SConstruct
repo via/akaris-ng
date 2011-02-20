@@ -3,6 +3,7 @@ Import('*')
 libs = Glob('lib/*.[cs]') 
 common = Glob('common/*.c')
 i686src = Glob('i686/*.[sc]')
+testsrc = Glob('test/*.c')
 
 includepaths = [ '.', 'include/', 'lib/']
 
@@ -13,10 +14,15 @@ sources += common
 if architecture == "i686":
   sources.extend(i686src)
   env.Append(CFLAGS=" -fstack-protector")
-
+if architecture == "test":
+  sources.extend(testsrc)
+  env.Replace(CFLAGS="")
 
 objects = []
 for item in sources:
   objects += env.Object(item, CPPPATH=includepaths)
 
-env.Kernel('kernel', objects)
+if architecture == "test":
+  env.Program('kernel', objects)
+else:
+  env.Kernel('kernel', objects)
