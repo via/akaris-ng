@@ -114,7 +114,10 @@ void k_snprintf_vaarg(char *output, int maxlen, const char *format,
       break;
 
   }
-  *(out - 1) = '\0';
+  if (out < output + maxlen) {
+    *out = '\0';
+  }
+  *(output - 1) = '\0';
 }
 
 

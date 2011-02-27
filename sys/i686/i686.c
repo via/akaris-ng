@@ -4,6 +4,7 @@
 #include "strfuncs.h"
 #include "bootvideo.h"
 
+#include "mutex.h"
 #include "kernel.h"
 #include "physmem.h"
 
@@ -34,12 +35,15 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
   bootvideo_cls();
 
-  i686_kernel.phys = (struct physmem *)i686_physmem_alloc(&i686_kernel, info);
   i686_kernel.debug = i686_debug;
 
-  i686_kernel.debug("%s: %d: %s\n", "Hello! ", 12345, "\nWorld!\n");
-
-
+  if (magic != MULTIBOOT_BOOTLOADER_MAGIC) {
+    i686_debug("Not booted from multiboot loader!\n");
+    while (1);
+  }
+  i686_kernel.mutex = &i686_mutex;
+  i686_kernel.phys = (struct physmem *)i686_physmem_alloc(&i686_kernel, info);
+  while(1);
 
 }
 
@@ -49,7 +53,7 @@ start() {
   unsigned long magic;
   multiboot_info_t *mboot_info;
 
-  __asm__ ("movl %0, %%esp" : : "i"(t_stack  + T_STACK_SIZE - 1));
+  __asm__ ("movl %0, %%esp" : : "i"(t_stack  + T_STACK_SIZE - 32));
   __asm__ ("movl %%eax, %0" : "=m"(magic));
   __asm__ ("movl %%ebx, %0" : "=m"(mboot_info));
 

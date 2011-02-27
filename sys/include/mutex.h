@@ -11,7 +11,8 @@ enum mutex_status {
 struct mutex_vfuncs {
   enum mutex_status (*mutex_lock)(struct mutex *, const char *name); 
   void (*mutex_unlock)(struct mutex *);
-  const char * (*mutex_blocker)(struct mutex *);
+  const char * (*mutex_blocker)(const struct mutex *);
+  void (*mutex_init)(struct mutex *);
 };
 
 
@@ -25,7 +26,8 @@ extern struct mutex_vfuncs i686_mutex;
 
 /*Base class functions */
 void mutex_unlock(struct mutex *);
-const char *mutex_blocker(struct mutex*);
+const char *mutex_blocker(const struct mutex*);
+void mutex_init(struct mutex *);
 
   
 
