@@ -16,7 +16,7 @@ if architecture == "i686":
   env.Append(CFLAGS=" -fstack-protector")
 if architecture == "test":
   sources.extend(testsrc)
-  env.Replace(CFLAGS="")
+  env.Replace(CFLAGS="-ggdb")
 
 objects = []
 for item in sources:

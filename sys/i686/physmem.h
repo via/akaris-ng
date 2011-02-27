@@ -8,7 +8,7 @@
 
 extern struct physmem i686_physmem;
 
-struct physmem *i686_physmem_alloc(struct kernel *, multiboot_header_t *);
+struct physmem *i686_physmem_alloc(struct kernel *, multiboot_info_t *);
 
 
 #endif

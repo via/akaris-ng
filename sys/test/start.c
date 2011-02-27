@@ -6,14 +6,18 @@
 int
 main() {
   struct kernel test_kernel;
-  test_kernel.phys = test_physmem_alloc(&test_kernel);
+  test_kernel.phys = test_physmem_alloc(&test_kernel, 2, 64);
   printf("Hosted: Startup!\n");
 
-  physaddr_t addr;
-  test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &addr);
-  printf("Allocated: %x\n", addr);
-  test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &addr);
-  printf("Allocated: %x\n", addr);
+  physaddr_t addr, old;
+  physmem_error_t status = PHYSMEM_SUCCESS;
+  int num_pages = 0;
+  while (status == PHYSMEM_SUCCESS) {
+    num_pages++;
+    status = test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &addr);
+  }
+  printf("Num allocated pages: %d\n", num_pages - 1);
+
 
   return 0;
 }

@@ -67,8 +67,13 @@ physmem_error_t physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t
     if (region->free_pages) {
       /* TODO: when mutexes work, use it to lock this */
       int newblock = physmem_block_find_free(region->bitmap, region->bitmap_length);
+      region->free_pages--;
+      region->used_pages++;
       physmem_block_set(region->bitmap, region->bitmap_length, newblock, PHYSMEM_USED);
       allocated = region->start_address + newblock * _phys->v.page_size(_phys);
+      if (allocated == 0) {
+        return PHYSMEM_ERR_INITCOND;
+      }
       break;
 
     }

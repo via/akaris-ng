@@ -2,6 +2,8 @@
 #include "types.h"
 #include "strfuncs.h"
 
+#include <stdarg.h>
+
 size_t strlen(const char *str) {
 
   const char *tmp = str;
@@ -69,3 +71,59 @@ void itoa (char *buf, int base, int d)
   }
 }
 
+
+void k_snprintf_vaarg(char *output, int maxlen, const char *format,
+    va_list ap) {
+
+  char buf[20];
+  char *out = output;
+
+  const char *s_arg;
+  int d_arg;
+  unsigned long ul_arg;
+  
+  while (*format) {
+    if (*format == '%') {
+      switch(*++format) {
+        case 'd':
+          d_arg = va_arg(ap, int);
+          itoa(buf, 'd', d_arg);
+          out += strlcpy(out, buf, maxlen - (out - output));
+          break;
+        case 'u':
+          ul_arg = va_arg(ap, unsigned long);
+          itoa(buf, 'd', ul_arg);
+          out += strlcpy(out, buf, maxlen - (out - output));
+          break;
+        case 'x':
+          ul_arg = va_arg(ap, unsigned long);
+          itoa(buf, 'x', ul_arg);
+          out += strlcpy(out, buf, maxlen - (out - output));
+          break;
+        case 's':
+          s_arg = va_arg(ap, char *);
+          out += strlcpy(out, s_arg, maxlen - (out - output));
+          break;
+      }
+      ++format;
+    } else {
+      *out++ = *format++;
+    }
+
+    if (out >= output + maxlen) 
+      break;
+
+  }
+  *(out - 1) = '\0';
+}
+
+
+void
+k_snprintf(char *output, int maxlen, const char *format, ...) {
+
+  va_list ap;
+  va_start(ap, format);
+
+  k_snprintf_vaarg(output, maxlen, format, ap);
+  va_end(ap);
+}

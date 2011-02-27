@@ -1,4 +1,3 @@
-
 #include "sysconf.h"
 #include "types.h"
 #include "strfuncs.h"
@@ -29,8 +28,13 @@ static void bootvideo_scroll() {
 
 static void
 bootvideo_putc(const char c) {
-  vmem[(curY * COLS) + curX] = (uint16)c + (7 << 8);
-  curX++;
+  if (c == '\n') {
+    curX = 0;
+    curY++;
+  } else {
+    vmem[(curY * COLS) + curX] = (uint16)c + (7 << 8);
+    curX++;
+  }
   bootvideo_scroll();
 }
 
