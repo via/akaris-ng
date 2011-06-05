@@ -6,3 +6,11 @@ openbsd: ../sys/kernel.k
 	cp ../sys/kernel.k mountpoint/
 	umount mountpoint/
 	vnconfig -u svnd0
+
+freebsd:
+	cp source.img local.img
+	mdconfig -a -t vnode -f local.img  -u 0
+	mount -t ext2fs /dev/md0 mountpoint/
+	cp ../sys/kernel.k mountpoint/
+	umount mountpoint/
+	mdconfig -d -u 0
