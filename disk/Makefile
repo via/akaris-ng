@@ -1,4 +1,10 @@
 
+linux: ../sys/kernel.k
+	cp source.img local.img
+	mount -o loop -t ext2 local.img mountpoint
+	cp ../sys/kernel.k mountpoint/
+	umount mountpoint/
+
 openbsd: ../sys/kernel.k
 	cp source.img local.img
 	vnconfig svnd0 local.img
