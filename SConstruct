@@ -22,6 +22,7 @@ if architecture == None:
   debug="true"
 if architecture == "test":
   toolsprefix = ''
+  debug="true"
 if toolsprefix == None:
   toolsprefix = '%s-elf-' % architecture
 

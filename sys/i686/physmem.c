@@ -22,7 +22,7 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
 }
 
 
-static uint32 i686_physmem_page_size(struct physmem *p) {
+static uint32 i686_physmem_page_size(const struct physmem *p) {
 
   return PAGE_SIZE;
 }
@@ -40,15 +40,37 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 
 }
 
+static struct physmem_page * i686_physmem_phys_to_page(const struct physmem *_p, physaddr_t addr) {
+
+  extern const int ebss;
+  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
+  struct physmem_page *pageindex = (struct physmem_page *)k_end;
+  int index = (addr / _p->v.page_size(_p));
+
+  return &pageindex[index];
+}
+
+static physaddr_t i686_physmem_page_to_phys(const struct physmem *_p, 
+    const struct physmem_page *page) {
+
+  extern const int ebss;
+  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
+
+  int index = ((void *)page - (void *)k_end) / sizeof(struct physmem_page);
+
+  return index * _p->v.page_size(_p);
+
+
+}
+
 struct physmem i686_physmem = {
   .name = "i686physmem",
   .v = {
-    physmem_phys_to_page,
-    physmem_page_to_phys,
+    i686_physmem_phys_to_page,
+    i686_physmem_page_to_phys,
     physmem_page_alloc,
     physmem_page_free,
     physmem_stats_get,
     i686_physmem_page_size,
-    i686_physmem_region_add,
   },
 };

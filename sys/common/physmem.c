@@ -7,7 +7,6 @@
 
 physmem_error_t physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t *address) {
 
-  physaddr_t allocated = 0;
   struct physmem_page * newpage = NULL;
 
   if (_phys->free_pages <= 0) { 
