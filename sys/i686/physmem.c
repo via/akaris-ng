@@ -34,7 +34,6 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
 
 
     if (entry->type == 1) { /* Usable */
-      free_pages += (lastpage - startpage + 1);
       int curpage;
 
       for (curpage = startpage; curpage <= lastpage; ++curpage) {
@@ -42,6 +41,7 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
           LIST_INSERT_HEAD(&i686_physmem.bootlist, &table[curpage], pages);
         } else {
           LIST_INSERT_HEAD(&i686_physmem.freelist, &table[curpage], pages);
+          free_pages++;
         }
       }
     } 
@@ -78,6 +78,7 @@ static uint32 i686_prune_memory(struct kernel *k, multiboot_info_t *info,
     forcemarked++;
   }
 
+  i686_physmem.free_pages -= forcemarked;
   return forcemarked;
 }
 
