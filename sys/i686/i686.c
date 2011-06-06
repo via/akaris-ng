@@ -41,8 +41,27 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
     i686_debug("Not booted from multiboot loader!\n");
     while (1);
   }
+
+  i686_debug("mods_addr: %x\nmod_start: %x\n", info->mods_addr,
+      0);
+
   i686_kernel.mutex = &i686_mutex;
   i686_kernel.phys = (struct physmem *)i686_physmem_alloc(&i686_kernel, info);
+
+
+
+  physaddr_t newaddr;
+  physaddr_t lowest=0xFFFFFFFF;
+  unsigned int npages = 0;
+  while (i686_kernel.phys->v.page_alloc(i686_kernel.phys,
+      0, &newaddr) == PHYSMEM_SUCCESS) {
+    npages++;
+    if (newaddr < lowest) lowest = newaddr;
+  }
+
+
+  i686_kernel.debug("Allocated %x pages, lowest was %x\n", npages, lowest);
+
   while(1);
 
 }

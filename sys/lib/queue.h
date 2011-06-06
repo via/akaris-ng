@@ -325,7 +325,7 @@ struct name {								\
 
 #define	LIST_ENTRY(type)						\
 struct {								\
- type *le_next;	/* next element */			\
+  struct type *le_next;	/* next element */			\
 	struct type **le_prev;	/* address of previous next element */	\
 }
 

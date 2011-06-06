@@ -41,8 +41,7 @@ struct physmem_stats {
 
 
 struct physmem_page {
-  SLIST_ENTRY(physmem_page) pages;
-
+  LIST_ENTRY(physmem_page) pages;
   /* Entry for vm area */
 };
 
@@ -68,7 +67,8 @@ struct physmem {
   struct kernel *parent;
   const char *name;
   struct physmem_vfuncs v;
-  SLIST_HEAD(, physmem_page) freelist;
+  LIST_HEAD(, physmem_page) freelist;
+  LIST_HEAD(, physmem_page) bootlist;
   unsigned long total_pages, free_pages;
 };
 

@@ -15,10 +15,10 @@ physmem_error_t physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t
 
   _phys->free_pages--;
 
-  ASSERT(!SLIST_EMPTY(&_phys->freelist));
+  ASSERT(!LIST_EMPTY(&_phys->freelist));
 
-  newpage = SLIST_FIRST(&_phys->freelist);
-  SLIST_REMOVE_HEAD(&_phys->freelist, pages);
+  newpage = LIST_FIRST(&_phys->freelist);
+  LIST_REMOVE(newpage, pages);
 
 
   *address = _phys->v.page_to_phys(_phys, newpage);
@@ -30,7 +30,7 @@ physmem_error_t physmem_page_free(struct physmem *_phys, physaddr_t address) {
 
   struct physmem_page *page = _phys->v.phys_to_page(_phys, address);
 
-  SLIST_INSERT_HEAD(&_phys->freelist, page, pages);
+  LIST_INSERT_HEAD(&_phys->freelist, page, pages);
 
   _phys->free_pages++;
 
