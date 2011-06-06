@@ -12,7 +12,7 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
   struct physmem_page *table = (struct physmem_page *)kernel_end;
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
-  unsigned int pagesize = i686_physmem.v.page_size(&i686_physmem);
+  unsigned int pagesize = i686_physmem.p.v.page_size(&i686_physmem.p);
 
   k->debug("addr: %x  len: %d\n", info->mmap_addr, info->mmap_length);
   while (entry < (memory_map_t *)(info->mmap_addr + info->mmap_length)) {
@@ -38,17 +38,17 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
 
       for (curpage = startpage; curpage <= lastpage; ++curpage) {
         if (curpage * pagesize < 0x100000) { /*HACK, if <1MB, save for later*/
-          LIST_INSERT_HEAD(&i686_physmem.bootlist, &table[curpage], pages);
+          LIST_INSERT_HEAD(&i686_physmem.p.bootlist, &table[curpage], pages);
         } else {
-          LIST_INSERT_HEAD(&i686_physmem.freelist, &table[curpage], pages);
+          LIST_INSERT_HEAD(&i686_physmem.p.freelist, &table[curpage], pages);
           free_pages++;
         }
       }
     } 
 
     total_pages += (lastpage - startpage + 1);
-    i686_physmem.free_pages = free_pages;
-    i686_physmem.total_pages = total_pages;
+    i686_physmem.p.free_pages = free_pages;
+    i686_physmem.p.total_pages = total_pages;
 
     entry++;
   }
@@ -65,20 +65,20 @@ static uint32 i686_physmem_page_size(const struct physmem *p) {
 static uint32 i686_prune_memory(struct kernel *k, multiboot_info_t *info,
     physaddr_t newend) {
 
-  unsigned int pagesize = i686_physmem.v.page_size(&i686_physmem);
+  unsigned int pagesize = i686_physmem.p.v.page_size(&i686_physmem.p);
   unsigned int start_kernel = 0x100000 / 0x1000;
   unsigned int end_kernel = (newend + (pagesize - 1)) / pagesize;
   unsigned int curpage;
   uint32 forcemarked = 0;
 
   for (curpage = start_kernel; curpage <= end_kernel; ++curpage) {
-    struct physmem_page *page = i686_physmem.v.phys_to_page(&i686_physmem,
+    struct physmem_page *page = i686_physmem.p.v.phys_to_page(&i686_physmem.p,
         curpage * pagesize);
     LIST_REMOVE(page, pages);
     forcemarked++;
   }
 
-  i686_physmem.free_pages -= forcemarked;
+  i686_physmem.p.free_pages -= forcemarked;
   return forcemarked;
 }
 
@@ -89,8 +89,8 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
   physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
   uint32 pruned;
 
-  LIST_INIT(&i686_physmem.freelist);
-  LIST_INIT(&i686_physmem.bootlist);
+  LIST_INIT(&i686_physmem.p.freelist);
+  LIST_INIT(&i686_physmem.p.bootlist);
 
   physaddr_t newend = i686_create_initial(kernel, info, k_end);
   
@@ -98,18 +98,21 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
   pruned = i686_prune_memory(kernel, info, newend);
   kernel->debug("Pruned %d pages\n", pruned);
 
+  i686_physmem.start_address = k_end;
+  i686_physmem.last_address = newend;
 
 
 
-  return &i686_physmem;
+
+  return &i686_physmem.p;
 
 }
 
 static struct physmem_page * i686_physmem_phys_to_page(const struct physmem *_p, physaddr_t addr) {
 
-  extern const int ebss;
-  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
-  struct physmem_page *pageindex = (struct physmem_page *)k_end;
+  const struct i686physmem *p = (const struct i686physmem *)_p;
+
+  struct physmem_page *pageindex = (struct physmem_page *)p->start_address;
   int index = (addr / _p->v.page_size(_p));
 
   return &pageindex[index];
@@ -118,24 +121,25 @@ static struct physmem_page * i686_physmem_phys_to_page(const struct physmem *_p,
 static physaddr_t i686_physmem_page_to_phys(const struct physmem *_p, 
     const struct physmem_page *page) {
 
-  extern const int ebss;
-  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
+  const struct i686physmem *p = (const struct i686physmem *)_p;
 
-  int index = ((void *)page - (void *)k_end) / sizeof(struct physmem_page);
+  int index = ((void *)page - (void *)p->start_address) / sizeof(struct physmem_page);
 
   return index * _p->v.page_size(_p);
 
 
 }
 
-struct physmem i686_physmem = {
-  .name = "i686physmem",
-  .v = {
-    i686_physmem_phys_to_page,
-    i686_physmem_page_to_phys,
-    physmem_page_alloc,
-    physmem_page_free,
-    physmem_stats_get,
-    i686_physmem_page_size,
+struct i686physmem i686_physmem = {
+  .p = {
+    .name = "i686physmem",
+    .v = {
+      i686_physmem_phys_to_page,
+      i686_physmem_page_to_phys,
+      physmem_page_alloc,
+      physmem_page_free,
+      physmem_stats_get,
+      i686_physmem_page_size,
+    },
   },
 };
