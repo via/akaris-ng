@@ -27,13 +27,6 @@ static uint32 i686_physmem_page_size(struct physmem *p) {
   return PAGE_SIZE;
 }
 
-static physmem_error_t
-i686_physmem_region_add(struct physmem *_phys, uint8 node,
-    physaddr_t start, physaddr_t stop) {
-
-  /*TODO: Not implemented */
-  return PHYSMEM_ERR_INITCOND;
-}
 
 struct physmem *
 i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
@@ -50,6 +43,8 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 struct physmem i686_physmem = {
   .name = "i686physmem",
   .v = {
+    physmem_phys_to_page,
+    physmem_page_to_phys,
     physmem_page_alloc,
     physmem_page_free,
     physmem_stats_get,

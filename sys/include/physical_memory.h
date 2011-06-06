@@ -18,6 +18,7 @@ typedef uint64 physaddr_t;
 
 struct physmem_stats;
 struct physmem;
+struct physmem_page;
 struct physmem_vfuncs;
 struct kernel;
 
@@ -38,45 +39,50 @@ struct physmem_stats {
   unsigned int free_pages;
 };
 
-struct physmem_region {
-  uint32 *bitmap;
-  uint32 free_pages, used_pages, bitmap_length;
-  physaddr_t start_address;
 
-  SLIST_ENTRY(physmem_region) regions;
+struct physmem_page {
+  SLIST_ENTRY(physmem_page) pages;
+
+  /* Entry for vm area */
 };
 
 struct physmem_vfuncs {
 
   /* Function API */
+  struct physmem_page * (*phys_to_page)(const struct physmem *,
+      physaddr_t address);
+  physaddr_t (* page_to_phys)(const struct physmem *, 
+      const struct physmem_page *);
+
   physmem_error_t (*page_alloc)(struct physmem *, uint8 node, 
       physaddr_t *address);
   physmem_error_t (*page_free)(struct physmem *, physaddr_t address);
-  struct physmem_stats (*stats_get)(struct physmem *);
-  uint32 (*page_size)(struct physmem *);
 
-  physmem_error_t (*region_add)(struct physmem *, uint8 node, 
-      physaddr_t start, physaddr_t end);
+  struct physmem_stats (*stats_get)(const struct physmem *);
+  uint32 (*page_size)(const struct physmem *);
+
 
 };
 
 struct physmem {
   struct kernel *parent;
   const char *name;
-  unsigned int num_nodes;
   struct physmem_vfuncs v;
-  SLIST_HEAD(, physmem_region) regionlist;
+  SLIST_HEAD(, physmem_page) freelist;
+  unsigned long total_pages, free_pages;
 };
 
 
 
 /* Base implementations */
+
+struct physmem_page * physmem_phys_to_page(physaddr_t address);
+physaddr_t physmem_page_to_phys(const struct physmem_page *);
+
 physmem_error_t physmem_page_alloc(struct physmem *, uint8, physaddr_t *);
 physmem_error_t physmem_page_free(struct physmem *, physaddr_t);
-struct physmem_stats physmem_stats_get(struct physmem * );
-uint32 physmem_page_size(struct physmem *);
-physmem_error_t physmem_region_add(struct physmem *, uint8, 
-    physaddr_t, physaddr_t);
+struct physmem_stats physmem_stats_get(const struct physmem * );
+uint32 physmem_page_size(const struct physmem *);
 
 
 #endif
