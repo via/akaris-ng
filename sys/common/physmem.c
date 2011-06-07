@@ -54,3 +54,16 @@ uint32 physmem_page_size(const struct physmem *_phys) {
 
 }
 
+
+struct physmem * feeder_physmem_create(struct feeder_physmem *dest,
+    struct physmem *source, unsigned int kept_pages,
+    unsigned int min_source_pages) {
+
+  dest->source = source;
+  dest->pages_to_keep = kept_pages;
+  dest->min_free_source_pages = min_source_pages;
+  dest->p.parent = source->parent;
+  dest->p.name = "feeder";
+
+
+}

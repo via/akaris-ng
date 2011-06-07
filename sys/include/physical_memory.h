@@ -85,4 +85,21 @@ struct physmem_stats physmem_stats_get(const struct physmem * );
 uint32 physmem_page_size(const struct physmem *);
 
 
+/* Feeder implementation */
+
+struct feeder_physmem {
+  struct physmem p;
+  struct physmem *source;
+
+  unsigned int pages_to_keep;
+  unsigned int min_free_source_pages;
+};
+
+struct physmem * feeder_physmem_create(struct feeder_physmem *new,
+                                       struct physmem *source,
+                                       unsigned int pages_to_keep,
+                                       unsigned int min_source_pages);
+
+
+
 #endif
