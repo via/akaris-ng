@@ -64,8 +64,30 @@ static physmem_error_t feeder_physmem_page_free(struct physmem *p,
 static physmem_error_t feeder_physmem_page_alloc(struct physmem *p, 
     uint8 node, physaddr_t *addr) {
 
+  struct feeder_physmem *feeder = (struct feeder_physmem *)p;
+  
+  if (p->free_pages < feeder->pages_to_keep) {
+    /* Pull and add (pages_to_keep - free_pages) to freelist */
+    int xfer_pages = (feeder->pages_to_keep - p->free_pages);
+    physaddr_t newaddr;
+    struct physmem_page *newpage;
+    while (xfer_pages) {
+      if (feeder->source->free_pages < feeder->min_free_source_pages) break;
+      feeder->source->v.page_alloc(feeder->source, node, &newaddr);
+      newpage = feeder->source->v.phys_to_page(feeder->source, newaddr);
+      LIST_INSERT_HEAD(&p->freelist, newpage, pages);
+      p->free_pages++;
+      p->total_pages++;
+      --xfer_pages;
+    }
+    if (p->free_pages > 0) {
+      return feeder->source->v.page_alloc(p, node, addr);
+    } else {
+      return feeder->source->v.page_alloc(feeder->source, node, addr);
+    }
+  } 
 
-  return PHYSMEM_SUCCESS;
+
 }
 
 
