@@ -6,6 +6,7 @@
 
 #include "mutex.h"
 #include "kernel.h"
+#include "i686_cpu.h"
 #include "physmem.h"
 
 
@@ -48,6 +49,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.mutex = &i686_mutex;
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
+  i686_debug("Sizeof GDT entry: %d\n", sizeof(struct i686_gdt_entry));
 
 
 

@@ -80,13 +80,13 @@ static physmem_error_t feeder_physmem_page_alloc(struct physmem *p,
       p->total_pages++;
       --xfer_pages;
     }
-    if (p->free_pages > 0) {
-      return feeder->source->v.page_alloc(p, node, addr);
-    } else {
-      return feeder->source->v.page_alloc(feeder->source, node, addr);
-    }
   } 
 
+  if (p->free_pages > 0) {
+    return feeder->source->v.page_alloc(p, node, addr);
+  } else {
+    return feeder->source->v.page_alloc(feeder->source, node, addr);
+  }
 
 }
 
