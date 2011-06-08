@@ -5,6 +5,7 @@
 struct kernel {
   struct physmem *phys;
   struct mutex_vfuncs *mutex;
+  struct cpu *bsp;
   void (*debug)(const char *, ...);
 };
 
