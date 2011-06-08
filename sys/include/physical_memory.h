@@ -95,7 +95,7 @@ struct feeder_physmem {
   unsigned int min_free_source_pages;
 };
 
-struct physmem * feeder_physmem_create(struct feeder_physmem *new,
+void feeder_physmem_create(struct feeder_physmem *new,
                                        struct physmem *source,
                                        unsigned int pages_to_keep,
                                        unsigned int min_source_pages);

@@ -54,8 +54,31 @@ uint32 physmem_page_size(const struct physmem *_phys) {
 
 }
 
+static physmem_error_t feeder_physmem_page_free(struct physmem *p, 
+    physaddr_t addr) {
 
-struct physmem * feeder_physmem_create(struct feeder_physmem *dest,
+
+  return PHYSMEM_SUCCESS;
+}
+
+static physmem_error_t feeder_physmem_page_alloc(struct physmem *p, 
+    uint8 node, physaddr_t *addr) {
+
+
+  return PHYSMEM_SUCCESS;
+}
+
+
+struct physmem_stats feeder_physmem_stats_get(const struct physmem *p) {
+
+  struct physmem_stats a;
+  a.kernel_pages = p->total_pages;
+  a.free_pages = p->free_pages;
+
+  return a;
+}
+
+void feeder_physmem_create(struct feeder_physmem *dest,
     struct physmem *source, unsigned int kept_pages,
     unsigned int min_source_pages) {
 
@@ -64,6 +87,19 @@ struct physmem * feeder_physmem_create(struct feeder_physmem *dest,
   dest->min_free_source_pages = min_source_pages;
   dest->p.parent = source->parent;
   dest->p.name = "feeder";
+  dest->p.v.phys_to_page = source->v.phys_to_page;
+  dest->p.v.page_to_phys = source->v.page_to_phys;
+  dest->p.v.page_alloc = feeder_physmem_page_alloc;
+  dest->p.v.page_free = feeder_physmem_page_free;
+  dest->p.v.stats_get = feeder_physmem_stats_get;
+  dest->p.v.page_size = source->v.page_size;
+
+  LIST_INIT(&dest->p.freelist);
+  
+  dest->p.total_pages = 0;
+  dest->p.free_pages = 0;
+
+
 
 
 }
