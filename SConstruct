@@ -34,7 +34,7 @@ env.Append(BUILDERS={'Kernel' : blder})
 env.Replace(CC='%sgcc' % toolsprefix)
 env.Replace(LD='%sld' % toolsprefix)
 env.Replace(AS='%sas' % toolsprefix)
-env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c89 -Wall -Werror -O0")
+env.Append(CFLAGS="-nostdlib -nostartfiles -nodefaultlibs -std=c99 -Wall -Werror -O0")
 
 env.Replace(LDSCRIPT='sys/scripts/%s.ld' % architecture)
 if debug:

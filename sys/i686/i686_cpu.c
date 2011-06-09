@@ -4,15 +4,23 @@
 
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 
-  struct {
+  volatile struct {
     uint16 limit;
     uint32 base;
   } __attribute__((packed)) gdtr;
 
   gdtr.base = (uint32)gdt;
-  gdtr.limit = (uint16)(length * sizeof(i686_gdt_entry));
+  gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));
 
-
+  __asm__("lgdt %0\n"
+          "jmpl %%cs:use_new_gdt\n" 
+          "use_new_gdt:\n"
+          "movw $0x10, %%ax\n"
+          "movw %%ax, %%ds\n"
+          "movw %%ax, %%es\n"
+          "movw %%ax, %%fs\n"
+          "movw %%ax, %%gs\n"
+          "movw %%ax, %%ss\n": : "m"(gdtr));
 
 }
 
@@ -55,6 +63,8 @@ static void i686_cpu_init(struct cpu *_cpu) {
     .limit_high = 0xF, .avl = 0, .reserved = 0,
     .op_size = 1, .granularity = 1, .base_high = 0,
   };
+
+  i686_cpu_set_gdt(cpu->gdt, 5);
 
 }
 
