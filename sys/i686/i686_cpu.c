@@ -13,7 +13,7 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
   gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));
 
   __asm__("lgdt %0\n"
-          "jmpl %%cs:use_new_gdt\n" 
+          "ljmp $0x08, $use_new_gdt\n" 
           "use_new_gdt:\n"
           "movw $0x10, %%ax\n"
           "movw %%ax, %%ds\n"
