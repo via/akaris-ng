@@ -15,6 +15,7 @@
 static char t_stack[T_STACK_SIZE] __attribute__((aligned(4)));
 
 static struct kernel i686_kernel;
+static struct i686_cpu bootproc;
 static char debugbuf[256];
 
 
@@ -49,7 +50,12 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.mutex = &i686_mutex;
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
-  i686_debug("Sizeof GDT entry: %d\n", sizeof(struct i686_gdt_entry));
+  i686_cpu_alloc(&bootproc, &i686_kernel);
+
+  i686_kernel.bsp = (struct cpu *)&bootproc;
+
+
+  i686_debug("Location GDT entry: %x\n", bootproc.gdt);
 
 
 
