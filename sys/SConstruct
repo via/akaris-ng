@@ -23,6 +23,7 @@ for item in sources:
   objects += env.Object(item, CPPPATH=includepaths)
 
 if architecture == "test":
+  env.ParseConfig('pkg-config --cflags --libs check')
   env.Program('kernel', objects)
 else:
   env.Kernel('kernel', objects)
