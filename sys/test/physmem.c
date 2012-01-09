@@ -11,18 +11,23 @@ test_physmem_alloc(struct kernel *kernel, int n_pages) {
 
   int count;
 
-  LIST_INIT(&t_physmem.p.freelist);
-  t_physmem.p.total_pages = n_pages;
-  t_physmem.p.free_pages = n_pages;
-  t_physmem.pagelist = (struct physmem_page *)malloc(
+  struct test_physmem *tphysmem = (struct test_physmem *)malloc(
+      sizeof(struct test_physmem));
+
+  memcpy(tphysmem, &t_physmem, sizeof(struct test_physmem));
+
+  LIST_INIT(&tphysmem->p.freelist);
+  tphysmem->p.total_pages = n_pages;
+  tphysmem->p.free_pages = n_pages;
+  tphysmem->pagelist = (struct physmem_page *)malloc(
       sizeof(struct physmem) * n_pages);
 
   for (count = n_pages; count > 0; --count) {
-    LIST_INSERT_HEAD(&t_physmem.p.freelist,
-        &t_physmem.pagelist[count - 1], pages);
+    LIST_INSERT_HEAD(&tphysmem->p.freelist,
+        &tphysmem->pagelist[count - 1], pages);
   }
 
-  return &t_physmem.p;
+  return &tphysmem->p;
 
 }
 
