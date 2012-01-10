@@ -77,13 +77,13 @@ struct physmem {
 
 /* Base implementations */
 
-struct physmem_page * physmem_phys_to_page(physaddr_t address);
-physaddr_t physmem_page_to_phys(const struct physmem_page *);
+struct physmem_page * common_physmem_phys_to_page(physaddr_t address);
+physaddr_t common_physmem_page_to_phys(const struct physmem_page *);
 
-physmem_error_t physmem_page_alloc(struct physmem *, uint8, physaddr_t *);
-physmem_error_t physmem_page_free(struct physmem *, physaddr_t);
-struct physmem_stats physmem_stats_get(const struct physmem * );
-uint32 physmem_page_size(const struct physmem *);
+physmem_error_t common_physmem_page_alloc(struct physmem *, uint8, physaddr_t *);
+physmem_error_t common_physmem_page_free(struct physmem *, physaddr_t);
+struct physmem_stats common_physmem_stats_get(const struct physmem * );
+uint32 common_physmem_page_size(const struct physmem *);
 
 
 /* Feeder implementation */

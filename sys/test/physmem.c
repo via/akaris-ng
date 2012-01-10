@@ -62,9 +62,9 @@ struct test_physmem t_physmem = {
     .v = {
       test_physmem_phys_to_page,
       test_physmem_page_to_phys,
-      physmem_page_alloc,
-      physmem_page_free,
-      physmem_stats_get,
+      common_physmem_page_alloc,
+      common_physmem_page_free,
+      common_physmem_stats_get,
       test_physmem_page_size,
     }
   },

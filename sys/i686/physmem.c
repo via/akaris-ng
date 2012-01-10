@@ -136,9 +136,9 @@ struct i686physmem i686_physmem = {
     .v = {
       i686_physmem_phys_to_page,
       i686_physmem_page_to_phys,
-      physmem_page_alloc,
-      physmem_page_free,
-      physmem_stats_get,
+      common_physmem_page_alloc,
+      common_physmem_page_free,
+      common_physmem_stats_get,
       i686_physmem_page_size,
     },
   },

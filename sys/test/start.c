@@ -61,7 +61,19 @@ START_TEST (check_physmem_page_free) {
     fail_unless(test_kernel.phys->free_pages == count + 1);
   }
 
+} END_TEST
 
+START_TEST (check_physmem_stats) {
+
+  struct kernel test_kernel;
+  const int n_pages = 24;
+  int count;
+  struct physmem_stats stats;
+
+  test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
+  stats = test_kernel.phys->v.stats_get(test_kernel.phys);
+  fail_unless(stats.kernel_pages == n_pages);
+  fail_unless(stats.free_pages == n_pages);
 
 } END_TEST
 
@@ -72,6 +84,9 @@ main_suite() {
   tcase_add_test(tc_physmem, check_physmem_alloc);
   tcase_add_test(tc_physmem, check_physmem_page_alloc);
   tcase_add_test(tc_physmem, check_physmem_page_free);
+  tcase_add_test(tc_physmem, check_physmem_stats);
+//  tcase_add_test(tc_physmem, check_physmem_feeder_feeds_correctly);
+//  tcase_add_test(tc_physmem, check_physmem_feeder_frees_correctly);
   suite_add_tcase(s, tc_physmem);
   return s;
 }

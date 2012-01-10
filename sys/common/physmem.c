@@ -5,7 +5,7 @@
 
 
 
-physmem_error_t physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t *address) {
+physmem_error_t common_physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t *address) {
 
   struct physmem_page * newpage = NULL;
 
@@ -26,7 +26,7 @@ physmem_error_t physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t
   return PHYSMEM_SUCCESS;
 }
 
-physmem_error_t physmem_page_free(struct physmem *_phys, physaddr_t address) {
+physmem_error_t common_physmem_page_free(struct physmem *_phys, physaddr_t address) {
 
   struct physmem_page *page = _phys->v.phys_to_page(_phys, address);
 
@@ -38,7 +38,7 @@ physmem_error_t physmem_page_free(struct physmem *_phys, physaddr_t address) {
   return PHYSMEM_SUCCESS;
 }
 
-struct physmem_stats physmem_stats_get(const struct physmem *_phys) {
+struct physmem_stats common_physmem_stats_get(const struct physmem *_phys) {
 
   struct physmem_stats a;
   a.kernel_pages = _phys->total_pages;
@@ -48,7 +48,7 @@ struct physmem_stats physmem_stats_get(const struct physmem *_phys) {
 
 }
 
-uint32 physmem_page_size(const struct physmem *_phys) {
+uint32 common_physmem_page_size(const struct physmem *_phys) {
 
   ASSERT(0);
   return 0;
