@@ -39,7 +39,7 @@ static uint32 test_physmem_page_size(const struct physmem *p) {
 static struct physmem_page * test_physmem_phys_to_page(const struct physmem *_p, physaddr_t addr) {
 
   const struct test_physmem *p = (const struct test_physmem *)_p;
-  int index = (addr / _p->v.page_size(_p));
+  int index = (addr / physmem_page_size(_p));
 
   return &p->pagelist[index];
 }
@@ -51,7 +51,7 @@ static physaddr_t test_physmem_page_to_phys(const struct physmem *_p,
   const struct test_physmem *p = (const struct test_physmem *)_p;
   int index = ((void *)page - (void *)p->pagelist) / sizeof(struct physmem_page);
 
-  return index * _p->v.page_size(_p);
+  return index * physmem_page_size(_p);
 
 
 }

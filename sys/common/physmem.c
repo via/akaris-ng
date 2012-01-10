@@ -126,3 +126,45 @@ void feeder_physmem_create(struct feeder_physmem *dest,
 
 
 }
+
+/* Interfaces */
+
+struct physmem_page * physmem_phys_to_page(struct physmem *p, physaddr_t addr) {
+
+  return p->v.phys_to_page(p, addr);
+
+}
+
+
+physaddr_t physmem_page_to_phys(struct physmem *p, const struct physmem_page *page) {
+
+  return p->v.page_to_phys(p, page);
+
+}
+
+physmem_error_t
+physmem_page_alloc(struct physmem *p, uint8 n, physaddr_t *addr) {
+
+  return p->v.page_alloc(p, n, addr);
+
+}
+
+physmem_error_t
+physmem_page_free(struct physmem *p, physaddr_t addr) {
+
+  return p->v.page_free(p, addr);
+
+}
+
+struct physmem_stats
+physmem_stats_get(const struct physmem *p) {
+
+  return p->v.stats_get(p);
+
+}
+
+uint32 physmem_page_size(const struct physmem *p) {
+
+  return p->v.page_size(p);
+
+}

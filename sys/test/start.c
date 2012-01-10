@@ -29,13 +29,13 @@ START_TEST (check_physmem_page_alloc) {
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
 
   for (count = 0; count < n_pages; ++count) {
-    err = test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &page);
+    err = physmem_page_alloc(test_kernel.phys, 0, &page);
     fail_unless(err == PHYSMEM_SUCCESS);
     fail_unless(test_kernel.phys->total_pages == n_pages);
     fail_unless(test_kernel.phys->free_pages == n_pages - (count + 1));
   }
 
-  err = test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &page);
+  err = physmem_page_alloc(test_kernel.phys, 0, &page);
   fail_if(err != PHYSMEM_ERR_OOM);
 
 } END_TEST
@@ -51,12 +51,12 @@ START_TEST (check_physmem_page_free) {
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
 
   for (count = 0; count < n_pages; ++count) {
-    err = test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &page);
+    err = physmem_page_alloc(test_kernel.phys, 0, &page);
     fail_unless(err == PHYSMEM_SUCCESS);
   }
   
   for (count = 0; count < n_pages; ++count) {
-    err = test_kernel.phys->v.page_free(test_kernel.phys, 0);
+    err = physmem_page_free(test_kernel.phys, 0);
     fail_unless(err == PHYSMEM_SUCCESS);
     fail_unless(test_kernel.phys->free_pages == count + 1);
   }
@@ -71,7 +71,7 @@ START_TEST (check_physmem_stats) {
   struct physmem_stats stats;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
-  stats = test_kernel.phys->v.stats_get(test_kernel.phys);
+  stats = physmem_stats_get(test_kernel.phys);
   fail_unless(stats.kernel_pages == n_pages);
   fail_unless(stats.free_pages == n_pages);
 

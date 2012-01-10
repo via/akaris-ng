@@ -12,7 +12,7 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
   struct physmem_page *table = (struct physmem_page *)kernel_end;
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
-  unsigned int pagesize = i686_physmem.p.v.page_size(&i686_physmem.p);
+  unsigned int pagesize = physmem_page_size(&i686_physmem.p);
 
   k->debug("addr: %x  len: %d\n", info->mmap_addr, info->mmap_length);
   while (entry < (memory_map_t *)(info->mmap_addr + info->mmap_length)) {
@@ -65,14 +65,14 @@ static uint32 i686_physmem_page_size(const struct physmem *p) {
 static uint32 i686_prune_memory(struct kernel *k, multiboot_info_t *info,
     physaddr_t newend) {
 
-  unsigned int pagesize = i686_physmem.p.v.page_size(&i686_physmem.p);
+  unsigned int pagesize = physmem_page_size(&i686_physmem.p);
   unsigned int start_kernel = 0x100000 / 0x1000;
   unsigned int end_kernel = (newend + (pagesize - 1)) / pagesize;
   unsigned int curpage;
   uint32 forcemarked = 0;
 
   for (curpage = start_kernel; curpage <= end_kernel; ++curpage) {
-    struct physmem_page *page = i686_physmem.p.v.phys_to_page(&i686_physmem.p,
+    struct physmem_page *page = physmem_phys_to_page(&i686_physmem.p,
         curpage * pagesize);
     LIST_REMOVE(page, pages);
     forcemarked++;
@@ -113,7 +113,7 @@ static struct physmem_page * i686_physmem_phys_to_page(const struct physmem *_p,
   const struct i686physmem *p = (const struct i686physmem *)_p;
 
   struct physmem_page *pageindex = (struct physmem_page *)p->start_address;
-  int index = (addr / _p->v.page_size(_p));
+  int index = (addr / physmem_page_size(_p));
 
   return &pageindex[index];
 }
@@ -125,7 +125,7 @@ static physaddr_t i686_physmem_page_to_phys(const struct physmem *_p,
 
   int index = ((void *)page - (void *)p->start_address) / sizeof(struct physmem_page);
 
-  return index * _p->v.page_size(_p);
+  return index * physmem_page_size(_p);
 
 
 }

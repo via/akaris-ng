@@ -101,6 +101,14 @@ void feeder_physmem_create(struct feeder_physmem *new,
                                        unsigned int pages_to_keep,
                                        unsigned int min_source_pages);
 
+/* Exposed interfaces */
+struct physmem_page * physmem_phys_to_page(struct physmem *, physaddr_t address);
+physaddr_t physmem_page_to_phys(struct physmem *, const struct physmem_page *);
+physmem_error_t physmem_page_alloc(struct physmem *, uint8, physaddr_t *);
+physmem_error_t physmem_page_free(struct physmem *, physaddr_t);
+struct physmem_stats physmem_stats_get(const struct physmem *);
+uint32 physmem_page_size(const struct physmem *);
 
 
 #endif
+
