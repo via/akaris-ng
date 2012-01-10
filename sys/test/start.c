@@ -77,6 +77,16 @@ START_TEST (check_physmem_stats) {
 
 } END_TEST
 
+START_TEST (check_physmem_feeder_feeds_correctly) {
+
+} END_TEST
+
+
+START_TEST (check_physmem_feeder_frees_correctly) {
+
+
+} END_TEST
+
 Suite *
 main_suite() {
   Suite *s = suite_create("Subsystems");
@@ -85,8 +95,8 @@ main_suite() {
   tcase_add_test(tc_physmem, check_physmem_page_alloc);
   tcase_add_test(tc_physmem, check_physmem_page_free);
   tcase_add_test(tc_physmem, check_physmem_stats);
-//  tcase_add_test(tc_physmem, check_physmem_feeder_feeds_correctly);
-//  tcase_add_test(tc_physmem, check_physmem_feeder_frees_correctly);
+  tcase_add_test(tc_physmem, check_physmem_feeder_feeds_correctly);
+  tcase_add_test(tc_physmem, check_physmem_feeder_frees_correctly);
   suite_add_tcase(s, tc_physmem);
   return s;
 }
