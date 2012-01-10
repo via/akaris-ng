@@ -30,6 +30,7 @@ physmem_error_t physmem_page_free(struct physmem *_phys, physaddr_t address) {
 
   struct physmem_page *page = _phys->v.phys_to_page(_phys, address);
 
+
   LIST_INSERT_HEAD(&_phys->freelist, page, pages);
 
   _phys->free_pages++;

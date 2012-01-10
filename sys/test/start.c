@@ -41,7 +41,28 @@ START_TEST (check_physmem_page_alloc) {
 } END_TEST
 
 START_TEST (check_physmem_page_free) {
-  fail_if(0);
+
+  struct kernel test_kernel;
+  const int n_pages = 24;
+  int count;
+  physmem_error_t err;
+  physaddr_t page;
+
+  test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
+
+  for (count = 0; count < n_pages; ++count) {
+    err = test_kernel.phys->v.page_alloc(test_kernel.phys, 0, &page);
+    fail_unless(err == PHYSMEM_SUCCESS);
+  }
+  
+  for (count = 0; count < n_pages; ++count) {
+    err = test_kernel.phys->v.page_free(test_kernel.phys, 0);
+    fail_unless(err == PHYSMEM_SUCCESS);
+    fail_unless(test_kernel.phys->free_pages == count + 1);
+  }
+
+
+
 } END_TEST
 
 Suite *

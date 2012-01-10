@@ -8,6 +8,8 @@
 
 #define SMP
 
+#define DEBUG
+
 
 /* I386 Specific configuration */
 #ifdef I386

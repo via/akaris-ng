@@ -27,6 +27,7 @@ typedef enum {
   PHYSMEM_ERR_MEMUSED,
   PHYSMEM_ERR_INITCOND,
   PHYSMEM_ERR_OOM,
+  PHYSMEM_ERR_DOUBLEFREE,
 } physmem_error_t;
 
 typedef enum {
