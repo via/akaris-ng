@@ -1,9 +1,14 @@
 #include "kernel.h"
 #include "physmem.h"
+#include "slab.h"
+#include "queue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <check.h>
+
+static const int ctor_marker = 0x11;
+static const int dtor_marker = 0x22;
 
 START_TEST (check_physmem_alloc) {
 
@@ -79,13 +84,82 @@ START_TEST (check_physmem_stats) {
 
 START_TEST (check_physmem_feeder_feeds_correctly) {
 
+  fail_if(1);
+
 } END_TEST
 
 
 START_TEST (check_physmem_feeder_frees_correctly) {
 
+  fail_if(1);
 
 } END_TEST
+
+void check_kmem_cache_ctor(void *_obj) {
+  int *obj = (int *)_obj;
+  *obj = ctor_marker;
+}
+
+void check_kmem_cache_dtor(void *_obj) {
+  int *obj = (int *)_obj;
+  *obj = dtor_marker;
+}
+
+/* I know this is huge, need to learn how to use fixtures to more easily split
+ * apart the source
+ */
+START_TEST (check_kmem_cache_create) {
+
+  const int slab_size = 32;
+  kmem_error_t err;
+
+  struct kmem_cache *k = (struct kmem_cache *)
+    malloc(sizeof(struct kmem_cache));
+
+  struct kmem_allocator allocator = {
+    .cv = {
+      .reap = NULL,
+      .alloc = NULL,
+      .free = NULL,
+      .new_slab = NULL,
+    },
+  };
+
+  struct cpu c = {
+    .allocator = &allocator,
+  };
+
+  err = common_kmem_cache_create(k, &c, "test-slab-32", slab_size,
+      check_kmem_cache_ctor, check_kmem_cache_dtor);
+
+  fail_unless(err == KMEM_SUCCESS);
+  fail_unless(k->ctor == check_kmem_cache_ctor);
+  fail_unless(k->dtor == check_kmem_cache_dtor);
+  fail_unless(strcmp(k->name, "test-slab-32") == 0);
+  fail_unless(k->objsize == slab_size);
+  fail_unless(k->used == 0);
+  fail_unless(k->cpu == &c);
+  fail_unless(SLIST_EMPTY(&k->slabs_empty));
+  fail_unless(SLIST_EMPTY(&k->slabs_full));
+  fail_unless(SLIST_EMPTY(&k->slabs_partial));
+  fail_unless(k->v == &allocator.cv);
+
+  /*Now test case of size < 4 */
+  err = common_kmem_cache_create(k, &c, "test-slab-32", 2,
+      check_kmem_cache_ctor, check_kmem_cache_dtor);
+  fail_unless(err == KMEM_ERR_INVALID);
+
+  free(k);
+
+} END_TEST
+
+START_TEST (check_kmem_cache_alloc_ctor_dtor) {
+
+  fail_if(1);
+
+} END_TEST
+
+
 
 Suite *
 main_suite() {
@@ -98,6 +172,12 @@ main_suite() {
   tcase_add_test(tc_physmem, check_physmem_feeder_feeds_correctly);
   tcase_add_test(tc_physmem, check_physmem_feeder_frees_correctly);
   suite_add_tcase(s, tc_physmem);
+
+  TCase *tc_slab = tcase_create("SLAB Allocator");
+  tcase_add_test(tc_slab, check_kmem_cache_create);
+  tcase_add_test(tc_slab, check_kmem_cache_alloc_ctor_dtor);
+  suite_add_tcase(s, tc_slab);
+
   return s;
 }
 

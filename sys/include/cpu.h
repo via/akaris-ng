@@ -3,6 +3,7 @@
 
 #include "kernel.h"
 #include "physical_memory.h"
+#include "slab.h"
 /* Generic structures for CPU */
 
 struct cpu_vfuncs;
@@ -18,6 +19,7 @@ struct cpu {
   struct kernel *k;
   struct cpu_vfuncs v;
   struct physmem *localmem;
+  struct kmem_allocator *allocator;
   char *model;
 
 
