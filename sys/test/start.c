@@ -156,8 +156,37 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
 
 
 START_TEST (check_physmem_feeder_frees_correctly) {
+  
+  struct kernel test_kernel;
+  const int n_pages = 24;
+  const int kept_pages = 5;
+  const int min_source_pages = 5;
+  int count;
+  struct feeder_physmem f;
+  kmem_error_t err;
+  physaddr_t addr;
 
-  fail_if(1);
+  test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
+  feeder_physmem_create(&f, test_kernel.phys, kept_pages, min_source_pages);
+
+  for (count = n_pages; count > 0; --count)
+    physmem_page_alloc((struct physmem *)&f, 0, &addr);
+
+  fail_unless(f.p.free_pages == 0);
+  fail_unless(test_kernel.phys->free_pages == 0);
+
+  for (count = 0; count < min_source_pages; ++count) {
+    physmem_page_free(&f.p, 0);
+    fail_unless(f.p.free_pages == 0);
+    fail_unless(test_kernel.phys->free_pages == count);
+  }
+
+  for (count = 1; count <= kept_pages; ++count) {
+    physmem_page_free(&f.p, 0);
+    fail_unless(f.p.free_pages == count);
+    fail_unless(test_kernel.phys->free_pages == min_source_pages);
+  }
+  /* Need to implement max/min for kept pages, and test it */
 
 } END_TEST
 
