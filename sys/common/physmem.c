@@ -21,14 +21,14 @@ physmem_error_t common_physmem_page_alloc(struct physmem *_phys, uint8 node, phy
   LIST_REMOVE(newpage, pages);
 
 
-  *address = _phys->v.page_to_phys(_phys, newpage);
+  *address = physmem_page_to_phys(_phys, newpage);
 
   return PHYSMEM_SUCCESS;
 }
 
 physmem_error_t common_physmem_page_free(struct physmem *_phys, physaddr_t address) {
 
-  struct physmem_page *page = _phys->v.phys_to_page(_phys, address);
+  struct physmem_page *page = physmem_phys_to_page(_phys, address);
 
 
   LIST_INSERT_HEAD(&_phys->freelist, page, pages);
@@ -67,13 +67,14 @@ static physmem_error_t feeder_physmem_page_alloc(struct physmem *p,
 
   struct feeder_physmem *feeder = (struct feeder_physmem *)p;
   
-  if (p->free_pages < feeder->pages_to_keep) {
+  if (p->free_pages < feeder->pages_to_keep + 1) { /* +1 because we are about
+                                                      to alloc one page */
     /* Pull and add (pages_to_keep - free_pages) to freelist */
-    int xfer_pages = (feeder->pages_to_keep - p->free_pages);
+    int xfer_pages = (feeder->pages_to_keep - p->free_pages + 1);
     physaddr_t newaddr;
     struct physmem_page *newpage;
     while (xfer_pages) {
-      if (feeder->source->free_pages < feeder->min_free_source_pages) break;
+      if (feeder->source->free_pages <= feeder->min_free_source_pages) break;
       feeder->source->v.page_alloc(feeder->source, node, &newaddr);
       newpage = feeder->source->v.phys_to_page(feeder->source, newaddr);
       LIST_INSERT_HEAD(&p->freelist, newpage, pages);
@@ -84,9 +85,10 @@ static physmem_error_t feeder_physmem_page_alloc(struct physmem *p,
   } 
 
   if (p->free_pages > 0) {
+    /* Use source's alloc function, but using this data */
     return feeder->source->v.page_alloc(p, node, addr);
   } else {
-    return feeder->source->v.page_alloc(feeder->source, node, addr);
+    return physmem_page_alloc(feeder->source, node, addr);
   }
 
 }

@@ -18,6 +18,7 @@ START_TEST (check_physmem_alloc) {
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
 
+  fail_unless(test_kernel.phys->parent == &test_kernel);
   fail_unless(test_kernel.phys->total_pages == n_pages);
   fail_unless(test_kernel.phys->free_pages == n_pages);
 
@@ -82,9 +83,74 @@ START_TEST (check_physmem_stats) {
 
 } END_TEST
 
+START_TEST (check_physmem_feeder_create) {
+
+  struct kernel test_kernel;
+  const int n_pages = 24;
+  const int kept_pages = 5;
+  const int min_source_pages = 5;
+  int count;
+  struct feeder_physmem f;
+
+  test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
+  feeder_physmem_create(&f, test_kernel.phys, kept_pages, min_source_pages);
+
+  fail_unless(f.source == test_kernel.phys);
+  fail_unless(f.pages_to_keep == kept_pages);
+  fail_unless(f.min_free_source_pages = min_source_pages);
+  fail_unless(f.p.parent == &test_kernel);
+  fail_unless(strcmp(f.p.name, "feeder") == 0);
+  fail_unless(LIST_EMPTY(&f.p.freelist));
+  fail_unless(f.p.total_pages == 0);
+  fail_unless(f.p.free_pages == 0);
+
+} END_TEST
+
+
+
 START_TEST (check_physmem_feeder_feeds_correctly) {
 
-  fail_if(1);
+  struct kernel test_kernel;
+  const int n_pages = 24;
+  const int kept_pages = 5;
+  const int min_source_pages = 5;
+  int count;
+  struct feeder_physmem f;
+  kmem_error_t err;
+  physaddr_t addr;
+
+  test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
+  feeder_physmem_create(&f, test_kernel.phys, kept_pages, min_source_pages);
+
+  err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
+  fail_unless(err == PHYSMEM_SUCCESS);
+  fail_unless(f.p.free_pages >= kept_pages);
+  /* Make sure that while the source has sufficient free pages, the feeder will
+   * remain replenished */
+  while (test_kernel.phys->free_pages > min_source_pages) {
+    err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
+    fail_unless(err == PHYSMEM_SUCCESS);
+  }
+  fail_unless(f.p.free_pages == kept_pages);
+  /*For the next min_source_pages, make sure feeder does not draw from source,
+   * and allows the feeder supply to reach 0 */
+  for (count = min_source_pages - 1; count >= 0; --count) {
+    err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
+    fail_unless(err == PHYSMEM_SUCCESS);
+    fail_unless(f.p.free_pages == count);
+    fail_unless(f.source->free_pages == min_source_pages);
+  }
+  /*After that point, all allocs should directly affect the source, while the
+   * feeder remains empty */
+  for (count = min_source_pages - 1; count >= 0; --count) {
+    err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
+    fail_unless(err == PHYSMEM_SUCCESS);
+    fail_unless(f.source->free_pages == count);
+    fail_unless(f.p.free_pages == 0);
+  }
+  /* Now we're out of memory */
+  err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
+  fail_unless(err == PHYSMEM_ERR_OOM);
 
 } END_TEST
 
@@ -169,6 +235,7 @@ main_suite() {
   tcase_add_test(tc_physmem, check_physmem_page_alloc);
   tcase_add_test(tc_physmem, check_physmem_page_free);
   tcase_add_test(tc_physmem, check_physmem_stats);
+  tcase_add_test(tc_physmem, check_physmem_feeder_create);
   tcase_add_test(tc_physmem, check_physmem_feeder_feeds_correctly);
   tcase_add_test(tc_physmem, check_physmem_feeder_frees_correctly);
   suite_add_tcase(s, tc_physmem);

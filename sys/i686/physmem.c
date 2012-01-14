@@ -100,6 +100,7 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 
   i686_physmem.start_address = k_end;
   i686_physmem.last_address = newend;
+  i686_physmem.p.parent = kernel;
 
 
 

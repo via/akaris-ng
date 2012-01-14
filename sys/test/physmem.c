@@ -19,6 +19,7 @@ test_physmem_alloc(struct kernel *kernel, int n_pages) {
   LIST_INIT(&tphysmem->p.freelist);
   tphysmem->p.total_pages = n_pages;
   tphysmem->p.free_pages = n_pages;
+  tphysmem->p.parent = kernel;
   tphysmem->pagelist = (struct physmem_page *)malloc(
       sizeof(struct physmem) * n_pages);
 
