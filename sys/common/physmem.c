@@ -58,6 +58,17 @@ uint32 common_physmem_page_size(const struct physmem *_phys) {
 static physmem_error_t feeder_physmem_page_free(struct physmem *p, 
     physaddr_t addr) {
 
+  struct feeder_physmem *feeder = (struct feeder_physmem *)p;
+
+  /* For the time being, keep all returned pages unless the source is running
+   * low */
+
+  if (feeder->source->free_pages < feeder->min_free_source_pages) {
+    physmem_page_free(feeder->source, addr);
+  } else {
+    /* Keep page here */
+    feeder->source->v.page_free(p, addr);
+  }
 
   return PHYSMEM_SUCCESS;
 }

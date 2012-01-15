@@ -88,7 +88,7 @@ START_TEST (check_physmem_feeder_create) {
   struct kernel test_kernel;
   const int n_pages = 24;
   const int kept_pages = 5;
-  const int min_source_pages = 5;
+  const int min_source_pages = 7;
   int count;
   struct feeder_physmem f;
 
@@ -113,7 +113,7 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
   struct kernel test_kernel;
   const int n_pages = 24;
   const int kept_pages = 5;
-  const int min_source_pages = 5;
+  const int min_source_pages = 7;
   int count;
   struct feeder_physmem f;
   kmem_error_t err;
@@ -127,14 +127,14 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
   fail_unless(f.p.free_pages >= kept_pages);
   /* Make sure that while the source has sufficient free pages, the feeder will
    * remain replenished */
-  while (test_kernel.phys->free_pages > min_source_pages) {
+  while (test_kernel.phys->free_pages > min_source_pages ) {
     err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
     fail_unless(err == PHYSMEM_SUCCESS);
   }
-  fail_unless(f.p.free_pages == kept_pages);
+
   /*For the next min_source_pages, make sure feeder does not draw from source,
    * and allows the feeder supply to reach 0 */
-  for (count = min_source_pages - 1; count >= 0; --count) {
+  for (count = kept_pages - 1; count >= 0; --count) {
     err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
     fail_unless(err == PHYSMEM_SUCCESS);
     fail_unless(f.p.free_pages == count);
@@ -175,7 +175,7 @@ START_TEST (check_physmem_feeder_frees_correctly) {
   fail_unless(f.p.free_pages == 0);
   fail_unless(test_kernel.phys->free_pages == 0);
 
-  for (count = 0; count < min_source_pages; ++count) {
+  for (count = 1; count <= min_source_pages; ++count) {
     physmem_page_free(&f.p, 0);
     fail_unless(f.p.free_pages == 0);
     fail_unless(test_kernel.phys->free_pages == count);
