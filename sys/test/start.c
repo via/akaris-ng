@@ -197,8 +197,12 @@ void check_kmem_cache_ctor(void *_obj) {
 }
 
 void check_kmem_cache_dtor(void *_obj) {
-  int *obj = (int *)_obj;
-  *obj = dtor_marker;
+  /* This is a double pointer so that the obj can be set to a int* and the
+   * marker can be set to an external int for verification
+   */
+
+  int **obj = (int **)_obj;
+  **obj = dtor_marker;
 }
 
 /* I know this is huge, need to learn how to use fixtures to more easily split
@@ -242,7 +246,26 @@ START_TEST (check_kmem_cache_init) {
 
 START_TEST (check_kmem_cache_alloc_ctor_dtor) {
 
-  fail_if(1);
+  struct cpu c = {
+    .allocator = &test_allocator,
+  };
+
+  int *ptr;
+  int dtor_tester;
+  
+  struct kmem_cache *k = test_allocator.av.kmem_cache_alloc();
+  test_allocator.av.kmem_cache_init(k, &c, "test-slab-32", 32,
+      check_kmem_cache_ctor, check_kmem_cache_dtor);
+
+  ptr = (int *)kmem_cache_alloc(k);
+  fail_if(ptr == NULL);
+  fail_unless(*ptr == ctor_marker);
+
+  *((int **)(ptr)) = &dtor_tester;
+
+  kmem_cache_free(k, ptr);
+  fail_unless(ptr == NULL);
+  fail_unless(dtor_tester == dtor_marker);
 
 } END_TEST
 

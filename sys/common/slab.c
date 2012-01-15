@@ -42,3 +42,16 @@ kmem_error_t common_kmem_cache_init(struct kmem_cache *k, struct cpu *c,
 
   return KMEM_SUCCESS;
 }
+
+
+inline void *kmem_cache_alloc(struct kmem_cache *k) {
+  return k->v->alloc(k);
+}
+
+inline void kmem_cache_reap(struct kmem_cache *k) {
+  k->v->reap(k);
+}
+
+inline void kmem_cache_free(struct kmem_cache *k, void *p) {
+  k->v->free(k, p);
+}

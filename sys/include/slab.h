@@ -66,13 +66,9 @@ kmem_error_t common_kmem_cache_init(struct kmem_cache *k, struct cpu *c,
     const char *name, size_t size, void (*ctor)(void *), 
     void (*dtor)(void *));
 
-void kmem_cache_alloc(struct kmem_cache *);
-void kmem_cache_free(struct kmem_cache *);
+void *kmem_cache_alloc(struct kmem_cache *);
+void kmem_cache_free(struct kmem_cache *, void *);
 void kmem_cache_reap(struct kmem_cache *);
 
-
-
-
-
-
 #endif
+
