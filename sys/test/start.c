@@ -1,6 +1,7 @@
 #include "kernel.h"
 #include "physmem.h"
 #include "slab.h"
+#include "test_slab.h"
 #include "queue.h"
 
 #include <stdio.h>
@@ -203,7 +204,7 @@ void check_kmem_cache_dtor(void *_obj) {
 /* I know this is huge, need to learn how to use fixtures to more easily split
  * apart the source
  */
-START_TEST (check_kmem_cache_create) {
+START_TEST (check_kmem_cache_init) {
 
   const int slab_size = 32;
   kmem_error_t err;
@@ -211,20 +212,11 @@ START_TEST (check_kmem_cache_create) {
   struct kmem_cache *k = (struct kmem_cache *)
     malloc(sizeof(struct kmem_cache));
 
-  struct kmem_allocator allocator = {
-    .cv = {
-      .reap = NULL,
-      .alloc = NULL,
-      .free = NULL,
-      .new_slab = NULL,
-    },
-  };
-
   struct cpu c = {
-    .allocator = &allocator,
+    .allocator = &test_allocator,
   };
 
-  err = common_kmem_cache_create(k, &c, "test-slab-32", slab_size,
+  err = common_kmem_cache_init(k, &c, "test-slab-32", slab_size,
       check_kmem_cache_ctor, check_kmem_cache_dtor);
 
   fail_unless(err == KMEM_SUCCESS);
@@ -237,10 +229,10 @@ START_TEST (check_kmem_cache_create) {
   fail_unless(SLIST_EMPTY(&k->slabs_empty));
   fail_unless(SLIST_EMPTY(&k->slabs_full));
   fail_unless(SLIST_EMPTY(&k->slabs_partial));
-  fail_unless(k->v == &allocator.cv);
+  fail_unless(k->v == &test_allocator.cv);
 
   /*Now test case of size < 4 */
-  err = common_kmem_cache_create(k, &c, "test-slab-32", 2,
+  err = common_kmem_cache_init(k, &c, "test-slab-32", 2,
       check_kmem_cache_ctor, check_kmem_cache_dtor);
   fail_unless(err == KMEM_ERR_INVALID);
 
@@ -270,7 +262,7 @@ main_suite() {
   suite_add_tcase(s, tc_physmem);
 
   TCase *tc_slab = tcase_create("SLAB Allocator");
-  tcase_add_test(tc_slab, check_kmem_cache_create);
+  tcase_add_test(tc_slab, check_kmem_cache_init);
   tcase_add_test(tc_slab, check_kmem_cache_alloc_ctor_dtor);
   suite_add_tcase(s, tc_slab);
 

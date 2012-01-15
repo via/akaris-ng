@@ -25,7 +25,6 @@ struct kmem_cache_vfuncs {
   void (*reap)(struct kmem_cache *);
   void *(*alloc)(struct kmem_cache *);
   void (*free)(struct kmem_cache *, void *);
-  struct kmem_slab *(*new_slab)(struct kmem_cache *);
 };
 
 struct kmem_cache {
@@ -49,7 +48,7 @@ struct kmem_cache {
 struct kmem_allocator_vfuncs {
   void (*kmem_init)();
   struct kmem_cache *(*kmem_cache_alloc)();
-  kmem_error_t *(*kmem_cache_init)(struct kmem_cache *, struct cpu *cpu, 
+  kmem_error_t (*kmem_cache_init)(struct kmem_cache *, struct cpu *cpu, 
       const char *name, size_t size, void (*ctor)(void *), 
       void (*dtor)(void *));
 };
@@ -63,12 +62,13 @@ struct kmem_allocator {
 void *common_kmem_cache_alloc(struct kmem_cache *);
 void common_kmem_cache_free(struct kmem_cache *, void *);
 void common_kmem_cache_reap(struct kmem_cache *);
-
+kmem_error_t common_kmem_cache_init(struct kmem_cache *k, struct cpu *c, 
+    const char *name, size_t size, void (*ctor)(void *), 
+    void (*dtor)(void *));
 
 void kmem_cache_alloc(struct kmem_cache *);
 void kmem_cache_free(struct kmem_cache *);
 void kmem_cache_reap(struct kmem_cache *);
-struct kmem_slab *kmem_new_slab(struct kmem_cache *, unsigned int);
 
 
 
