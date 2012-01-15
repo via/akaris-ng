@@ -15,8 +15,9 @@ typedef enum {
 
 struct kmem_slab {
   SLIST_ENTRY(kmem_slab) slabs;
-  unsigned short num_free;
+  unsigned short num_total;
   unsigned short * freelist;
+  void *first_free;
 };
 
 struct kmem_cache;

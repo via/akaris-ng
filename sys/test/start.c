@@ -264,7 +264,6 @@ START_TEST (check_kmem_cache_alloc_ctor_dtor) {
   *((int **)(ptr)) = &dtor_tester;
 
   kmem_cache_free(k, ptr);
-  fail_unless(ptr == NULL);
   fail_unless(dtor_tester == dtor_marker);
 
 } END_TEST

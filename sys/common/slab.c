@@ -6,7 +6,6 @@
 #include <slab.h>
 
 void *common_kmem_cache_alloc(struct kmem_cache *cache) {
-
   return NULL;
 }
 
