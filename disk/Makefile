@@ -7,11 +7,11 @@ linux: ../sys/kernel.k
 
 openbsd: ../sys/kernel.k
 	cp source.img local.img
-	vnconfig svnd0 local.img
-	mount -t ext2fs /dev/svnd0c mountpoint/
+	vnconfig vnd0 local.img
+	mount -t ext2fs /dev/vnd0c mountpoint/
 	cp ../sys/kernel.k mountpoint/
 	umount mountpoint/
-	vnconfig -u svnd0
+	vnconfig -u vnd0
 
 freebsd:
 	cp source.img local.img
