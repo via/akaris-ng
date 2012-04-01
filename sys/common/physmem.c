@@ -15,7 +15,7 @@ physmem_error_t common_physmem_page_alloc(struct physmem *_phys, uint8 node, phy
 
   _phys->free_pages--;
 
-  ASSERT(!LIST_EMPTY(&_phys->freelist));
+  assert(!LIST_EMPTY(&_phys->freelist));
 
   newpage = LIST_FIRST(&_phys->freelist);
   LIST_REMOVE(newpage, pages);
@@ -50,7 +50,7 @@ struct physmem_stats common_physmem_stats_get(const struct physmem *_phys) {
 
 uint32 common_physmem_page_size(const struct physmem *_phys) {
 
-  ASSERT(0);
+  assert(0);
   return 0;
 
 }
