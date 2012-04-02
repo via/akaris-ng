@@ -18,7 +18,7 @@ if architecture == "test":
   sources.extend(testsrc)
 #The two extra defines are because scons doesn't appear to do pkg-config right
 #so OpenBSD doesn't work
-  env.Append(CFLAGS="-ggdb -I/usr/local/include -L/usr/local/lib")
+  env.Append(CFLAGS="-ggdb -I/usr/local/include -L/usr/local/lib -DHOSTED")
 
 objects = []
 for item in sources:

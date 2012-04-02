@@ -17,5 +17,4 @@
 #define MAX_PHYS_REGIONS (MAX_PHYS_MEMORY / (128 * 1024 * 1024))
 #endif
 
-/*#define HOSTED*/
 #endif
