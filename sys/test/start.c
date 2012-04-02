@@ -246,6 +246,10 @@ static void *fake_alloc(struct virtmem *m, unsigned int pages) {
   return malloc(pages * 4096);
 }
 
+static void *fake_alloc_null(struct virtmem *m, unsigned int pages) {
+  return NULL;
+}
+
 static uint32 fake_page_size(const struct physmem *p) {
   return 4096;
 }
@@ -288,6 +292,50 @@ START_TEST (check_kmem_cache_alloc_ctor_dtor) {
 
 } END_TEST
 
+START_TEST (check_kmem_cache_alloc) {
+  struct virtmem kvirt = {
+    .v = {
+      .kernel_alloc = fake_alloc,
+    },
+  };
+  struct physmem p = {
+    .v = {
+      .page_size = fake_page_size,
+    },
+  };
+
+
+  struct cpu c = {
+    .allocator = &test_allocator,
+    .kvirt = &kvirt,
+    .localmem = &p,
+  };
+
+  void *ptr;
+  struct kmem_cache *k = test_allocator.av.kmem_cache_alloc();
+  test_allocator.av.kmem_cache_init(k, &c, "test-slab-32", 32,
+      NULL, NULL);
+
+  ptr = kmem_cache_alloc(k);
+
+  fail_unless(SLIST_EMPTY(&k->slabs_empty));
+  fail_unless(SLIST_EMPTY(&k->slabs_full));
+  fail_unless(!SLIST_EMPTY(&k->slabs_partial));
+  struct kmem_slab *slab = SLIST_FIRST(&k->slabs_partial);
+  fail_if(ptr <= *(slab->freelist + slab->num_total));
+  fail_unless(slab->first_free == &slab->freelist[1]);
+  fail_unless(ptr == slab->freelist[0]);
+  fail_unless(k->used == 1);
+  fail_if(ptr <= (void *)slab);
+  fail_if(ptr >= (void *)slab + 4096);
+
+  kvirt.v.kernel_alloc = fake_alloc_null;
+  while ((ptr = kmem_cache_alloc(k)) != NULL) {
+    fail_if(ptr <= (void *)slab);
+    fail_if(ptr >= (void *)slab + 4096);
+  }
+
+} END_TEST
 
 
 
@@ -307,6 +355,7 @@ main_suite() {
   TCase *tc_slab = tcase_create("SLAB Allocator");
   tcase_add_test(tc_slab, check_kmem_cache_init);
   tcase_add_test(tc_slab, check_kmem_cache_alloc_ctor_dtor);
+  tcase_add_test(tc_slab, check_kmem_cache_alloc);
   suite_add_tcase(s, tc_slab);
 
   return s;

@@ -52,7 +52,6 @@ kmem_initialize_slab(struct kmem_cache *cache, struct kmem_slab *s) {
 
 void *common_kmem_cache_alloc(struct kmem_cache *cache) {
   assert(cache != NULL);
-  assert(cache->ctor != NULL);
   assert(cache->cpu != NULL);
   assert(cache->cpu->kvirt != NULL);
 
@@ -68,12 +67,13 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
   } else {
     /*We have no slabs in either empty or partial, get some */
     s = (struct kmem_slab *)kernel_alloc(cache->cpu->kvirt, 1);
-    s->n_pages = 1;
     if (s == NULL) {
       /* Possibly attempt reaping? But now just fail */
       return NULL;
     }
+    s->n_pages = 1;
     kmem_initialize_slab(cache, s);
+    SLIST_INSERT_HEAD(&cache->slabs_partial, s, slabs);
   }
 
 
@@ -87,7 +87,9 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
     SLIST_INSERT_HEAD(&cache->slabs_full, s, slabs);
   }
   
-  cache->ctor(obj);
+  if (cache->ctor != NULL) {
+    cache->ctor(obj);
+  }
   cache->used++;
 
   return obj;
@@ -95,6 +97,37 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
 }
 
 void common_kmem_cache_free(struct kmem_cache *cache, void *obj) {
+  assert(cache != NULL);
+  assert(obj != NULL);
+
+  struct kmem_slab *s;
+
+  if (!SLIST_EMPTY(&cache->slabs_partial)) {
+    s = SLIST_FIRST(&cache->slabs_partial);
+  } else if (!SLIST_EMPTY(&cache->slabs_full)) {
+    s = SLIST_FIRST(&cache->slabs_full);
+    SLIST_REMOVE_HEAD(&cache->slabs_full, slabs);
+    SLIST_INSERT_HEAD(&cache->slabs_partial, s, slabs);
+  } else {
+    /* This means the cache thinks there's nothing allocated but its been free'd
+     * too anyway */
+    assert(0);
+  }
+
+  if (cache->dtor != NULL) {
+    cache->dtor(obj);
+  }
+
+  s->first_free--;
+  *s->first_free = obj;
+  cache->used--;
+
+  /* Was that the last one? */
+  if (s->first_free == &s->freelist) {
+    /* If so, push it to empty */
+    SLIST_REMOVE_HEAD(&cache->slabs_partial, slabs);
+    SLIST_INSERT_HEAD(&cache->slabs_empty, s, slabs);
+  }
 
 }
 
