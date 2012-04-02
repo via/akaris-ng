@@ -21,6 +21,7 @@ struct physmem;
 struct physmem_page;
 struct physmem_vfuncs;
 struct kernel;
+struct kmem_slab;
 
 typedef enum {
   PHYSMEM_SUCCESS,
@@ -43,8 +44,10 @@ struct physmem_stats {
 
 struct physmem_page {
   LIST_ENTRY(physmem_page) pages;
-  struct kmem_slab *slab;
-  /* Entry for vm area */
+  union {
+    struct kmem_slab *slab;
+    /* Entry for vm area */
+  } location;
 };
 
 struct physmem_vfuncs {
