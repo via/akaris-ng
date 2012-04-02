@@ -15,7 +15,6 @@ START_TEST (check_physmem_alloc) {
 
   struct kernel test_kernel;
   const int n_pages = 24;
-  physmem_error_t err;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
 
@@ -74,7 +73,6 @@ START_TEST (check_physmem_stats) {
 
   struct kernel test_kernel;
   const int n_pages = 24;
-  int count;
   struct physmem_stats stats;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
@@ -90,7 +88,6 @@ START_TEST (check_physmem_feeder_create) {
   const int n_pages = 24;
   const int kept_pages = 5;
   const int min_source_pages = 7;
-  int count;
   struct feeder_physmem f;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
@@ -164,7 +161,6 @@ START_TEST (check_physmem_feeder_frees_correctly) {
   const int min_source_pages = 5;
   int count;
   struct feeder_physmem f;
-  kmem_error_t err;
   physaddr_t addr;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);

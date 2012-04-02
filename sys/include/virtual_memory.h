@@ -4,11 +4,7 @@
 #include "types.h"
 #include "sysconf.h"
 
-#if PHYS_BITS == 32
-typedef uint32 virtaddr_t;
-#elif PHYS_BITS == 64
-typedef uint64 virtaddr_t;
-#endif
+typedef void* virtaddr_t;
 
 struct virtmem;
 struct virtmem_vfuncs;

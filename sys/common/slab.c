@@ -6,6 +6,7 @@
 #include "assert.h"
 #include "queue.h"
 #include "slab.h"
+#include "virtual_memory.h"
 
 static void
 kmem_initialize_slab(struct kmem_cache *cache, struct kmem_slab *s) {
