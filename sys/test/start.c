@@ -231,8 +231,8 @@ START_TEST (check_kmem_cache_init) {
   fail_unless(SLIST_EMPTY(&k->slabs_partial));
   fail_unless(k->v == &test_allocator.cv);
 
-  /*Now test case of size < 4 */
-  err = common_kmem_cache_init(k, &c, "test-slab-32", 2,
+  /*Now test case of size < 0 */
+  err = common_kmem_cache_init(k, &c, "test-slab-0", 0,
       check_kmem_cache_ctor, check_kmem_cache_dtor);
   fail_unless(err == KMEM_ERR_INVALID);
 
