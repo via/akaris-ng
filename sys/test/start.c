@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "physmem.h"
+#include "virtual_memory.h"
 #include "slab.h"
 #include "test_slab.h"
 #include "queue.h"
@@ -114,7 +115,7 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
   const int min_source_pages = 7;
   int count;
   struct feeder_physmem f;
-  kmem_error_t err;
+  physmem_error_t err;
   physaddr_t addr;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
@@ -201,6 +202,7 @@ void check_kmem_cache_dtor(void *_obj) {
   **obj = dtor_marker;
 }
 
+
 /* I know this is huge, need to learn how to use fixtures to more easily split
  * apart the source
  */
@@ -210,7 +212,7 @@ START_TEST (check_kmem_cache_init) {
   kmem_error_t err;
 
   struct kmem_cache *k = test_kmem_cache_alloc();
-    malloc(sizeof(struct kmem_cache));
+
 
   struct cpu c = {
     .allocator = &test_allocator,
@@ -240,10 +242,32 @@ START_TEST (check_kmem_cache_init) {
 
 } END_TEST
 
+static void *fake_alloc(struct virtmem *m, unsigned int pages) {
+  return malloc(pages * 4096);
+}
+
+static uint32 fake_page_size(const struct physmem *p) {
+  return 4096;
+}
+
 START_TEST (check_kmem_cache_alloc_ctor_dtor) {
+
+  struct virtmem kvirt = {
+    .v = {
+      .kernel_alloc = fake_alloc,
+    },
+  };
+  struct physmem p = {
+    .v = {
+      .page_size = fake_page_size,
+    },
+  };
+
 
   struct cpu c = {
     .allocator = &test_allocator,
+    .kvirt = &kvirt,
+    .localmem = &p,
   };
 
   int *ptr;
@@ -263,6 +287,7 @@ START_TEST (check_kmem_cache_alloc_ctor_dtor) {
   fail_unless(dtor_tester == dtor_marker);
 
 } END_TEST
+
 
 
 
