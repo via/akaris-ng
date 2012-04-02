@@ -213,7 +213,7 @@ START_TEST (check_kmem_cache_init) {
   const int slab_size = 32;
   kmem_error_t err;
 
-  struct kmem_cache *k = (struct kmem_cache *)
+  struct kmem_cache *k = test_kmem_cache_alloc();
     malloc(sizeof(struct kmem_cache));
 
   struct cpu c = {

@@ -5,7 +5,7 @@
 #include <cpu.h>
 
 #define MAX_SLAB_NAME_LEN 32
-#define MIN_CACHE_SIZE 16
+#define MIN_CACHE_SIZE 1
 
 typedef enum {
   KMEM_SUCCESS,
@@ -17,6 +17,7 @@ typedef enum {
 struct kmem_slab {
   SLIST_ENTRY(kmem_slab) slabs;
   unsigned int num_total;
+  unsigned int n_pages;
   void **first_free; /*Points to the index of the first free one */
   void *freelist[0]; /*Pre-allocated list of all pages */
 };

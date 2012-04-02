@@ -10,6 +10,43 @@
 static void
 kmem_initialize_slab(struct kmem_cache *cache, struct kmem_slab *s) {
 
+  assert(cache != NULL);
+  assert(s != NULL);
+  assert(cache->cpu != NULL);
+  assert(cache->cpu->localmem != NULL);
+
+  assert(s->n_pages != 0);
+  assert(cache->objsize != 0);
+
+
+  int n_elements;
+  int i;
+  void *cur_obj;
+  unsigned long size = s->n_pages * physmem_page_size(cache->cpu->localmem);
+
+  /* Formula for number of elements that can fit, accounting for the free list
+   * and slab manager struct is:
+   * (page size * size_of_slab - sizeof(manager struct) - sizeof(void*)  /
+   * (object size + size of a void* (free list)
+   */
+  n_elements = 
+    (size - sizeof(struct kmem_slab) - sizeof(void*)) / 
+      (cache->objsize + sizeof(void *));
+  s->num_total = n_elements;
+  assert(n_elements > 0);
+
+  /* Iterate over every object through n_elements, setting cur_obj to it along
+   * the way */
+  for (i = 0, cur_obj = (void *)s + size - (cache->objsize * n_elements); 
+      i < n_elements;
+      ++i, cur_obj += cache->objsize) {
+    s->freelist[i] = cur_obj;
+    /* Set this freelist entry to the object */
+  }
+  s->freelist[i] = NULL;
+  s->first_free = &s->freelist[0];
+
+
 }
 
 void *common_kmem_cache_alloc(struct kmem_cache *cache) {
@@ -30,6 +67,7 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
   } else {
     /*We have no slabs in either empty or partial, get some */
     s = (struct kmem_slab *)kernel_alloc(cache->cpu->kvirt, 1);
+    s->n_pages = 1;
     if (s == NULL) {
       /* Possibly attempt reaping? But now just fail */
       return NULL;
