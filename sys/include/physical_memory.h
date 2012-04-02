@@ -43,6 +43,7 @@ struct physmem_stats {
 
 struct physmem_page {
   LIST_ENTRY(physmem_page) pages;
+  struct kmem_slab *slab;
   /* Entry for vm area */
 };
 

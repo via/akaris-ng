@@ -123,7 +123,7 @@ void common_kmem_cache_free(struct kmem_cache *cache, void *obj) {
   cache->used--;
 
   /* Was that the last one? */
-  if (s->first_free == &s->freelist) {
+  if (s->first_free == (void **)&s->freelist) {
     /* If so, push it to empty */
     SLIST_REMOVE_HEAD(&cache->slabs_partial, slabs);
     SLIST_INSERT_HEAD(&cache->slabs_empty, s, slabs);
