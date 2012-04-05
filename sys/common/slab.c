@@ -57,6 +57,7 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
 
   struct kmem_slab *s = NULL;
   void *obj = NULL;
+  virtmem_error_t err;
 
   if (!SLIST_EMPTY(&cache->slabs_partial)) {
     s = SLIST_FIRST(&cache->slabs_partial);
@@ -66,8 +67,8 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
     SLIST_INSERT_HEAD(&cache->slabs_partial, s, slabs);
   } else {
     /*We have no slabs in either empty or partial, get some */
-    s = (struct kmem_slab *)virtmem_kernel_alloc(cache->cpu->kvirt, 1);
-    if (s == NULL) {
+    err = virtmem_kernel_alloc(cache->cpu->kvirt, (void **)&s, 1);
+    if (err != VIRTMEM_SUCCESS) {
       /* Possibly attempt reaping? But now just fail */
       return NULL;
     }

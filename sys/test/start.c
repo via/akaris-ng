@@ -242,12 +242,16 @@ START_TEST (check_kmem_cache_init) {
 
 } END_TEST
 
-static void *fake_alloc(struct virtmem *m, unsigned int pages) {
-  return malloc(pages * 4096);
+static virtmem_error_t fake_alloc(struct virtmem *m, virtaddr_t *a, 
+    unsigned int pages) {
+  a = malloc(pages * 4096);
+  return VIRTMEM_SUCCESS;
 }
 
-static void *fake_alloc_null(struct virtmem *m, unsigned int pages) {
-  return NULL;
+static virtmem_error_t  fake_alloc_null(struct virtmem *m, virtaddr_t *a, 
+    unsigned int pages) {
+  a = NULL;
+  return VIRTMEM_SUCCESS;
 }
 
 static uint32 fake_page_size(const struct physmem *p) {
