@@ -9,9 +9,11 @@ typedef void* virtaddr_t;
 
 struct virtmem;
 struct virtmem_vfuncs;
+struct cpu;
 
 typedef enum {
   VIRTMEM_SUCCESS,
+  VIRTMEM_NOTPRESENT,
 } virtmem_error_t;
 
 struct virtmem_vfuncs {
@@ -26,6 +28,7 @@ struct virtmem_vfuncs {
 
 struct virtmem {
   struct virtmem_vfuncs v;
+  struct cpu *cpu;
 
 };
 

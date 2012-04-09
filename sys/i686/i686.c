@@ -4,9 +4,11 @@
 #include "strfuncs.h"
 #include "bootvideo.h"
 
+#include "assert.h"
 #include "mutex.h"
 #include "kernel.h"
 #include "i686_cpu.h"
+#include "i686_virtmem.h"
 #include "physmem.h"
 
 
@@ -56,7 +58,11 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.bsp->v.init(i686_kernel.bsp);
 
   i686_debug("Location GDT entry: %x\n", bootproc.gdt);
+  i686_kernel.bsp->kvirt = i686_virtmem_init(&i686_kernel);
 
+  struct physmem_page *p;
+  virtmem_error_t e = virtmem_kernel_virt_to_phys(i686_kernel.bsp->kvirt, &p, (virtaddr_t)0x100000);
+  assert(e == VIRTMEM_NOTPRESENT);
 
 
 
