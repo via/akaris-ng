@@ -32,6 +32,8 @@ i686_virtmem_init(struct kernel *k) {
     i686_virtmem.kernel_pde_list[i].present = 1;
   }
 
+  i686_virtmem.virt.cpu = k->bsp;
+
   return &i686_virtmem.virt;
 
 }
