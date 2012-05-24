@@ -1,0 +1,16 @@
+akaris-ng is a from scratch rewrite of the akaris kernel. It is nowhere
+near complete, and it doesn't do much.
+
+Build requires scons.  By default, it will try to build the i686 target,
+which can be specifically requested by doing
+
+scons arch=i686
+
+It will expect a usable i686-elf-* toolchain in PATH.
+
+To build a hosted debug executive, use
+
+scons arch=test
+
+and it will build sys/kernel, which should run tests on your hosted 
+platform.

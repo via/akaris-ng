@@ -32,7 +32,7 @@ static virtmem_error_t
 test_kernel_alloc(struct virtmem *_v, virtaddr_t *a, unsigned int n_pages) {
 
   int i;
-  struct test_virtmem *v = _v->v;
+  struct test_virtmem *v = (struct test_virtmem *)_v;
 
   for (i = 0; i < v->n_pages; ++i) {
     if (v->pages[i].physaddr == NULL) {
