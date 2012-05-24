@@ -14,3 +14,11 @@ scons arch=test
 
 and it will build sys/kernel, which should run tests on your hosted 
 platform.
+
+If you built an i686 kernel, you can create a floppy disk with grub on
+it by going into disk/ and typing
+
+make linux # Build local.img on linux machines
+make openbsd # Build local.img on openbsd machines
+
+qemu -fda local.img  #Run qemu
