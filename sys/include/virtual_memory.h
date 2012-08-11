@@ -14,6 +14,7 @@ struct cpu;
 typedef enum {
   VIRTMEM_SUCCESS,
   VIRTMEM_NOTPRESENT,
+  VIRTMEM_OOM,
 } virtmem_error_t;
 
 struct virtmem_vfuncs {
