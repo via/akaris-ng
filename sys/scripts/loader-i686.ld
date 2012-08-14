@@ -1,7 +1,7 @@
 ENTRY (start)
 
 SECTIONS{
-    . = 0xC0000000;
+    . = 0x00100000;
 
     .text :{
         sys/i686/headers.o

@@ -13,6 +13,7 @@ sources += common
 
 if architecture == "i686":
   sources.extend(i686src)
+  includepaths.append('i686/')
   env.Append(CFLAGS=" -fstack-protector")
 if architecture == "test":
   sources.extend(testsrc)
@@ -28,4 +29,5 @@ if architecture == "test":
   env.ParseConfig('pkg-config --cflags --libs check')
   env.Program('kernel', objects)
 else:
+  env.Loader('loader', env.Object('i686/loader/loader.c', CPPPATH=includepaths))
   env.Kernel('kernel', objects)

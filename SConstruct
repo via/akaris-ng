@@ -8,6 +8,10 @@ def build_kernel(source, target, env, for_signature):
   return '%s -ggdb -T %s -o %s %s' % (env['LD'], env['LDSCRIPT'], " ".join(map(str,
   target)) , " ".join(map(str, source)))
 
+def build_loader(source, target, env, for_signature):
+  return '%s -ggdb -T %s -o %s %s' % (env['LD'], "sys/scripts/loader-%s.ld" %
+  architecture, " ".join(map(str,
+  target)) , " ".join(map(str, source)))
   
 
 buildfiles = [ 'sys/SConstruct' ]
@@ -27,10 +31,11 @@ if toolsprefix == None:
   toolsprefix = '%s-elf-' % architecture
 
 blder = Builder(generator = build_kernel, suffix=".k")
+loader_blder = Builder(generator = build_loader, suffix=".elf")
 
 env = Environment()
 env.Append(ENV=os.environ)
-env.Append(BUILDERS={'Kernel' : blder})
+env.Append(BUILDERS={'Kernel' : blder, 'Loader' : loader_blder})
 env.Replace(CC='%sgcc' % toolsprefix)
 env.Replace(LD='%sld' % toolsprefix)
 env.Replace(AS='%sas' % toolsprefix)
