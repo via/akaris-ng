@@ -3,30 +3,30 @@
 
 struct i686_pde {
   physaddr_t phys_addr : 20;
-  int avail : 3;
-  int global : 1;
-  int size : 1;
-  int zero : 1;
-  int accessed : 1;
-  int cache_disable : 1;
-  int write_through : 1;
-  int user : 1;
-  int writable : 1;
-  int present : 1;
+  unsigned int avail : 3;
+  unsigned int global : 1;
+  unsigned int size : 1;
+  unsigned int zero : 1;
+  unsigned int accessed : 1;
+  unsigned int cache_disable : 1;
+  unsigned int write_through : 1;
+  unsigned int user : 1;
+  unsigned int writable : 1;
+  unsigned int present : 1;
 } __attribute__((__packed__));
 
 struct i686_pte {
   physaddr_t phys_addr : 20;
-  int avail : 3;
-  int global : 1;
-  int zero : 1;
-  int dirty : 1;
-  int accessed : 1;
-  int cache_disable : 1;
-  int write_through : 1;
-  int user : 1;
-  int writable : 1;
-  int present : 1;
+  unsigned int avail : 3;
+  unsigned int global : 1;
+  unsigned int zero : 1;
+  unsigned int dirty : 1;
+  unsigned int accessed : 1;
+  unsigned int cache_disable : 1;
+  unsigned int write_through : 1;
+  unsigned int user : 1;
+  unsigned int writable : 1;
+  unsigned int present : 1;
 } __attribute__((__packed__));
 
 struct i686_virtmem {

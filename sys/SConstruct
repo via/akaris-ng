@@ -29,5 +29,6 @@ if architecture == "test":
   env.ParseConfig('pkg-config --cflags --libs check')
   env.Program('kernel', objects)
 else:
-  env.Loader('loader', env.Object('i686/loader/loader.c', CPPPATH=includepaths))
+  env.Loader('loader', [env.Object('i686/loader/loader.c', CPPPATH=includepaths),
+                        env.Object('i686/loader/headers.c', CPPPATH=includepaths)])
   env.Kernel('kernel', objects)
