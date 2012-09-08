@@ -1,5 +1,5 @@
 #include "kernel.h"
-#include "physmem.h"
+#include "test_physmem.h"
 #include "virtual_memory.h"
 #include "slab.h"
 #include "test_slab.h"

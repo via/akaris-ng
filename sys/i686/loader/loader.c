@@ -11,7 +11,7 @@
  */
 
 #include "multiboot.h"
-#include "physmem.h"
+#include "i686_physmem.h"
 #include "virtual_memory.h"
 #include "i686_virtmem.h"
 

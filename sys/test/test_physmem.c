@@ -1,5 +1,5 @@
 
-#include "physmem.h"
+#include "test_physmem.h"
 #include "strfuncs.h"
 
 #include <stdlib.h>

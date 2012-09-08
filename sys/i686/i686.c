@@ -9,7 +9,7 @@
 #include "kernel.h"
 #include "i686_cpu.h"
 #include "i686_virtmem.h"
-#include "physmem.h"
+#include "i686_physmem.h"
 
 
 #define T_STACK_SIZE 1024

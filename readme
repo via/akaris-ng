@@ -1,19 +1,16 @@
 akaris-ng is a from scratch rewrite of the akaris kernel. It is nowhere
 near complete, and it doesn't do much.
 
-Build requires scons.  By default, it will try to build the i686 target,
-which can be specifically requested by doing
+The build system requires BSD make.  To build a specific target, change
+to the target's compile directory and build the kernel target:
 
-scons arch=i686
+cd sys/i686/compile
+make kernel.k
 
-It will expect a usable i686-elf-* toolchain in PATH.
+or for tests:
 
-To build a hosted debug executive, use
-
-scons arch=test
-
-and it will build sys/kernel, which should run tests on your hosted 
-platform.
+cd sys/test/compile
+make kernel
 
 If you built an i686 kernel, you can create a floppy disk with grub on
 it by going into disk/ and typing

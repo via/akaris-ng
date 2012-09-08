@@ -1,3 +1,3 @@
-SRCS+= common/mutex.c \
-			 common/physmem.c \
-			 common/slab.c
+SRCS+= ${SRCROOT}/common/mutex.c \
+			 ${SRCROOT}/common/physmem.c \
+			 ${SRCROOT}/common/slab.c

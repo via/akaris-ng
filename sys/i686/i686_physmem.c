@@ -3,7 +3,7 @@
 #include "bootvideo.h"
 #include "kernel.h"
 #include "strfuncs.h"
-#include "physmem.h"
+#include "i686_physmem.h"
 
 static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info, 
     physaddr_t kernel_end) {
