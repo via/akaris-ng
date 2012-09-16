@@ -5,7 +5,8 @@
 
 
 
-physmem_error_t common_physmem_page_alloc(struct physmem *_phys, uint8 node, physaddr_t *address) {
+physmem_error_t common_physmem_page_alloc(struct physmem *_phys, 
+    uint8 node VAR_UNUSED, physaddr_t *address) {
 
   struct physmem_page * newpage = NULL;
 
@@ -48,7 +49,7 @@ struct physmem_stats common_physmem_stats_get(const struct physmem *_phys) {
 
 }
 
-uint32 common_physmem_page_size(const struct physmem *_phys) {
+uint32 common_physmem_page_size(const struct physmem *_phys VAR_UNUSED) {
 
   assert(0);
   return 0;

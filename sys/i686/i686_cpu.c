@@ -69,7 +69,7 @@ static void i686_cpu_init(struct cpu *_cpu) {
 }
 
 
-static void i686_cpu_schedule(struct cpu *_cpu) {
+static void i686_cpu_schedule(struct cpu *_cpu VAR_UNUSED) {
 
 
 }

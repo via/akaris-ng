@@ -14,6 +14,8 @@ typedef unsigned long size_t;
 #ifndef NULL
 #define NULL 0
 #endif
+
+#define VAR_UNUSED __attribute__((unused))
  
 
 #endif

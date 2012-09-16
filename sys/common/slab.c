@@ -132,7 +132,7 @@ void common_kmem_cache_free(struct kmem_cache *cache, void *obj) {
 
 }
 
-void common_kmem_cache_reap(struct kmem_cache *cache) {
+void common_kmem_cache_reap(struct kmem_cache *cache VAR_UNUSED) {
 
 }
 

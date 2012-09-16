@@ -8,13 +8,13 @@
 #include "assert.h"
 struct i686_virtmem i686_virtmem;
 
-static const int n_kernel_pde = 256;
+static const unsigned int n_kernel_pde = 256;
 
 struct virtmem *
 i686_virtmem_init(struct kernel *k) {
   physmem_error_t perr;
   physaddr_t paddr;
-  int i;
+  unsigned int i;
 
   assert(k->phys != NULL);
   /* Allocate page for the pde list */
@@ -40,13 +40,14 @@ i686_virtmem_init(struct kernel *k) {
 
 
 static virtmem_error_t
-i686_kernel_alloc(struct virtmem *v, virtaddr_t *addr, unsigned int n_pages) {
+i686_kernel_alloc(struct virtmem *v VAR_UNUSED, virtaddr_t *addr VAR_UNUSED, 
+                  unsigned int n_pages VAR_UNUSED) {
 
   return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t
-i686_kernel_free(struct virtmem *v, virtaddr_t addr) {
+i686_kernel_free(struct virtmem *v VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
 
   return VIRTMEM_SUCCESS;
 }
@@ -75,8 +76,8 @@ i686_kernel_virt_to_phys(struct virtmem *_v,
 }
 
 static virtmem_error_t
-i686_kernel_map_virt_to_phys(struct virtmem *v,
-    struct physmem_page **p, virtaddr_t addr) {
+i686_kernel_map_virt_to_phys(struct virtmem *v VAR_UNUSED,
+    struct physmem_page **p VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
   return VIRTMEM_SUCCESS;
 }
 

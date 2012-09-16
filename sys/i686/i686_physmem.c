@@ -34,7 +34,7 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
 
 
     if (entry->type == 1) { /* Usable */
-      int curpage;
+      unsigned int curpage;
 
       for (curpage = startpage; curpage <= lastpage; ++curpage) {
         if (curpage * pagesize < 0x100000) { /*HACK, if <1MB, save for later*/
@@ -57,13 +57,15 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
 }
 
 
-static uint32 i686_physmem_page_size(const struct physmem *p) {
+static uint32 i686_physmem_page_size(const struct physmem *p VAR_UNUSED) {
 
   return PAGE_SIZE;
 }
 
-static uint32 i686_prune_memory(struct kernel *k, multiboot_info_t *info,
-    physaddr_t newend) {
+static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED, 
+    multiboot_info_t *info VAR_UNUSED, 
+    physaddr_t newend VAR_UNUSED) {
+  /* TODO: Should use k's kernel, not just assume */
 
   unsigned int pagesize = physmem_page_size(&i686_physmem.p);
   unsigned int start_kernel = 0x100000 / 0x1000;
