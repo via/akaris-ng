@@ -11,6 +11,13 @@ SRCS+= ${SRCROOT}/i686/bootvideo.c \
 			 ${SRCROOT}/i686/i686_mutex.c \
 			 ${SRCROOT}/i686/i686_physmem.c \
 			 ${SRCROOT}/i686/stacksmash.c
+LOADER_SRCS+= ${SRCROOT}/i686/loader/headers.c \
+							${SRCROOT}/i686/loader/loader.c \
+							${SRCROOT}/i686/i686.cpu
 
 .include "${SRCROOT}/rules.mk"
 
+loader_depend:
+	mkdep ${CFLAG} ${SRCS}
+
+loader:

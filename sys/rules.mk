@@ -17,9 +17,6 @@ kernel.k: ${OBJS}
 	${LD} -o kernel.k -T ${SRCROOT}/scripts/${ARCH}.ld ${OBJS}
 .endif
 
-
-loader:
-
 clean:
 	-rm kernel.k ${OBJS}
 

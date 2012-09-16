@@ -14,9 +14,11 @@
 #include "i686_physmem.h"
 #include "virtual_memory.h"
 #include "i686_virtmem.h"
+#include "i686_cpu.h"
 
 #define LOADER_STACKSIZE 64
 static char loader_stack[LOADER_STACKSIZE] __attribute__((aligned(4)));
+static struct i686_gdt_entry gdt[3] __attribute__((aligned(4)));
 
 struct i686_pde temp_pde[1024] __attribute__((aligned(4096)));
 struct i686_pte kernel_pt[1024] __attribute__((aligned(4096)));
@@ -70,6 +72,33 @@ void setup_tables() {
   identity_pt[259].present = 1;
   identity_pt[260].phys_addr = 260;
   identity_pt[260].present = 1;
+}
+
+void setup_gpt() {
+
+  gdt[0] = (struct i686_gdt_entry) {
+    .limit_low = 0, .base_low = 0, .base_mid = 0,
+    .type = 0, .system = 0, .dpl = 0, .present = 0,
+    .limit_high = 0, .avl = 0, .reserved = 0,
+    .op_size = 0, .granularity = 0, .base_high = 0,
+  };
+
+  gdt[1] = (struct i686_gdt_entry) {
+    .limit_low = 0xFFFF, .base_low = 0, .base_mid = 0,
+    .type = 0xA, .system = 1, .dpl = 0, .present = 1,
+    .limit_high = 0xF, .avl = 0, .reserved = 0,
+    .op_size = 1, .granularity = 1, .base_high = 0,
+  };
+
+  gdt[2] = (struct i686_gdt_entry) {
+    .limit_low = 0xFFFF, .base_low = 0, .base_mid = 0,
+    .type = 0x2, .system = 1, .dpl = 0, .present = 1,
+    .limit_high = 0xF, .avl = 0, .reserved = 0,
+    .op_size = 1, .granularity = 1, .base_high = 0,
+  };
+
+  i686_cpu_set_gdt(gdt, 3);
+
 }
 
 
