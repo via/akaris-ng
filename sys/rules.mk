@@ -8,8 +8,6 @@ CFLAGS+=-Wall -Wextra -I${SRCROOT}/include -I${SRCROOT}/${ARCH} -std=c99
 
 OBJS = ${SRCS:S/.c/.o/:S/.s/.o/:T}
 
-kernel: kernel.k ${LOADER}
-
 depend:
 	mkdep ${CFLAGS} ${SRCS} ${LOADER_SRCS}
 
@@ -20,7 +18,7 @@ kernel.k: ${OBJS}
 .endif
 
 clean:
-	-rm kernel.k ${OBJS} .depend 
+	-rm kernel.k ${OBJS} .depend  kernel
 
 install: kernel.k 
 	cp kernel.k ${SRCROOT}

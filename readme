@@ -5,7 +5,11 @@ The build system requires BSD make.  To build a specific target, change
 to the target's compile directory and build the kernel target:
 
 cd sys/i686/compile
-make kernel.k
+make clean
+make depend
+make install
+
+This will place kernel.k in the top level sys/ directory
 
 or for tests:
 
