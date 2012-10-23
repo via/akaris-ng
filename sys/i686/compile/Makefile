@@ -4,7 +4,7 @@ CC=${ARCH}-elf-gcc
 LD=${ARCH}-elf-ld
 AS=${ARCH}-elf-as
 LOADER=loader.elf
-CFLAGS+=-ffreestanding -nostdlib -fno-builtin
+CFLAGS+=-ffreestanding -nostdlib -fno-builtin -fstack-protector
 SRCS+= ${SRCROOT}/i686/bootvideo.c \
 			 ${SRCROOT}/i686/i686.c \
 			 ${SRCROOT}/i686/i686_cpu.c \

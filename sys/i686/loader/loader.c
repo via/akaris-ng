@@ -59,19 +59,16 @@ void enable_paging() {
 void setup_tables() {
   temp_pde[0].phys_addr = (physaddr_t)&identity_pt / 4096;
   temp_pde[0].present = 1;
+  temp_pde[0].writable = 1;
   temp_pde[768].phys_addr = (physaddr_t)&kernel_pt / 4096;
   temp_pde[768].present = 1;
+  int i;
 
-  identity_pt[256].phys_addr = 256;
-  identity_pt[256].present = 1;
-  identity_pt[257].phys_addr = 257;
-  identity_pt[257].present = 1;
-  identity_pt[258].phys_addr = 258;
-  identity_pt[258].present = 1;
-  identity_pt[259].phys_addr = 259;
-  identity_pt[259].present = 1;
-  identity_pt[260].phys_addr = 260;
-  identity_pt[260].present = 1;
+  for (i = 0; i < 1024; ++i) {
+      identity_pt[i].phys_addr = i;
+      identity_pt[i].present = 1;
+      identity_pt[i].writable = 1;
+  }
 }
 
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
@@ -128,8 +125,8 @@ void loader_start(unsigned long magic, multiboot_info_t *info) {
 
   setup_tables();
   setup_gdt();
-  while (1);
   enable_paging();
+  while (1);
 
 
 }

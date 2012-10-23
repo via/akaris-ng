@@ -2,31 +2,31 @@
 #define I686_VIRTMEM_H
 
 struct i686_pde {
-  physaddr_t phys_addr : 20;
-  unsigned int avail : 3;
-  unsigned int global : 1;
-  unsigned int size : 1;
-  unsigned int zero : 1;
-  unsigned int accessed : 1;
-  unsigned int cache_disable : 1;
-  unsigned int write_through : 1;
-  unsigned int user : 1;
-  unsigned int writable : 1;
   unsigned int present : 1;
+  unsigned int writable : 1;
+  unsigned int user : 1;
+  unsigned int write_through : 1;
+  unsigned int cache_disable : 1;
+  unsigned int accessed : 1;
+  unsigned int zero : 1;
+  unsigned int size : 1;
+  unsigned int global : 1;
+  unsigned int avail : 3;
+  physaddr_t phys_addr : 20;
 } __attribute__((__packed__));
 
 struct i686_pte {
-  physaddr_t phys_addr : 20;
-  unsigned int avail : 3;
-  unsigned int global : 1;
-  unsigned int zero : 1;
-  unsigned int dirty : 1;
-  unsigned int accessed : 1;
-  unsigned int cache_disable : 1;
-  unsigned int write_through : 1;
-  unsigned int user : 1;
-  unsigned int writable : 1;
   unsigned int present : 1;
+  unsigned int writable : 1;
+  unsigned int user : 1;
+  unsigned int write_through : 1;
+  unsigned int cache_disable : 1;
+  unsigned int accessed : 1;
+  unsigned int dirty : 1;
+  unsigned int zero : 1;
+  unsigned int global : 1;
+  unsigned int avail : 3;
+  physaddr_t phys_addr : 20;
 } __attribute__((__packed__));
 
 struct i686_virtmem {
