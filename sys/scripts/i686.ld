@@ -26,7 +26,7 @@ SECTIONS{
         sbss = .;
         *(COMMON)
         *(.bss)
-        start_free = .;
+        phys_start_free = . - highstart;
     }
 
 }

@@ -66,25 +66,6 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
 
 
-  while(1);
 
 }
-
-
-void
-start() {
-  unsigned long magic;
-  multiboot_info_t *mboot_info;
-
-  __asm__ ("movl %0, %%esp" : : "i"(t_stack  + T_STACK_SIZE - 32));
-  __asm__ ("movl %%eax, %0" : "=m"(magic));
-  __asm__ ("movl %%ebx, %0" : "=m"(mboot_info));
-
-  i686_kmain(magic, mboot_info);
-
-  while (1);
-
-}
-
-
 

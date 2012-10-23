@@ -87,8 +87,8 @@ static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED,
 struct physmem *
 i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 
-  extern const int start_free;
-  physaddr_t k_end = ((physaddr_t)&start_free + 4096) / 4096 * 4096;
+  extern const int phys_start_free;
+  physaddr_t k_end = ((physaddr_t)&phys_start_free + 4096) / 4096 * 4096;
   uint32 pruned;
 
   LIST_INIT(&i686_physmem.p.freelist);
@@ -97,11 +97,12 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
   physaddr_t newend = i686_create_initial(kernel, info, k_end);
   
   /* Now we want to actually retroactively remove this area */
+  i686_physmem.start_address = k_end;
+  i686_physmem.last_address = newend;
+
   pruned = i686_prune_memory(kernel, info, newend);
   kernel->debug("Pruned %d pages\n", pruned);
 
-  i686_physmem.start_address = k_end;
-  i686_physmem.last_address = newend;
   i686_physmem.p.parent = kernel;
 
 

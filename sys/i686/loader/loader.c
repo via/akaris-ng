@@ -116,6 +116,6 @@ loader_start() {
   setup_gdt();
   enable_paging();
 
-  while (1);
+  i686_kmain(magic, mboot_info);
 
 }
