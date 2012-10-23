@@ -66,10 +66,11 @@ static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED,
     multiboot_info_t *info VAR_UNUSED, 
     physaddr_t newend VAR_UNUSED) {
   /* TODO: Should use k's kernel, not just assume */
+  extern int highstart;
 
   unsigned int pagesize = physmem_page_size(&i686_physmem.p);
   unsigned int start_kernel = 0x100000 / 0x1000;
-  unsigned int end_kernel = (newend + (pagesize - 1)) / pagesize;
+  unsigned int end_kernel = (newend - (physaddr_t)&highstart + (pagesize - 1)) / pagesize;
   unsigned int curpage;
   uint32 forcemarked = 0;
 
@@ -87,8 +88,8 @@ static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED,
 struct physmem *
 i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 
-  extern const int phys_start_free;
-  physaddr_t k_end = ((physaddr_t)&phys_start_free + 4096) / 4096 * 4096;
+  extern const int ebss;
+  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
   uint32 pruned;
 
   LIST_INIT(&i686_physmem.p.freelist);

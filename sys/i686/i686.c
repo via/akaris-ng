@@ -58,6 +58,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.bsp->v.init(i686_kernel.bsp);
 
   i686_debug("Location GDT entry: %x\n", bootproc.gdt);
+  while (1);
   i686_kernel.bsp->kvirt = i686_virtmem_init(&i686_kernel);
 
   struct physmem_page *p;
