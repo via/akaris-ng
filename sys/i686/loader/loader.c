@@ -74,7 +74,29 @@ void setup_tables() {
   identity_pt[260].present = 1;
 }
 
-void setup_gpt() {
+static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
+
+  volatile struct {
+    uint16 limit;
+    uint32 base;
+  } __attribute__((packed)) gdtr;
+
+  gdtr.base = (uint32)gdt;
+  gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));
+
+  __asm__("lgdt %0\n"
+          "ljmp $0x08, $use_new_gdt\n" 
+          "use_new_gdt:\n"
+          "movw $0x10, %%ax\n"
+          "movw %%ax, %%ds\n"
+          "movw %%ax, %%es\n"
+          "movw %%ax, %%fs\n"
+          "movw %%ax, %%gs\n"
+          "movw %%ax, %%ss\n": : "m"(gdtr));
+
+}
+
+void setup_gdt() {
 
   gdt[0] = (struct i686_gdt_entry) {
     .limit_low = 0, .base_low = 0, .base_mid = 0,
@@ -105,8 +127,9 @@ void setup_gpt() {
 void loader_start(unsigned long magic, multiboot_info_t *info) {
 
   setup_tables();
+  setup_gdt();
+  while (1);
   enable_paging();
-while (1);
 
 
 }

@@ -4,7 +4,7 @@ SECTIONS{
     . = 0x00100000;
 
     .text :{
-        sys/i686/loader/headers.o
+        headers.o
         *(.text)
     }
 
