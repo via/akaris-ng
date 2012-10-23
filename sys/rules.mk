@@ -6,9 +6,9 @@ CFLAGS+=-Wall -Wextra -I${SRCROOT}/include -I${SRCROOT}/${ARCH} -std=c99
 .include "${dir}/Makefile"
 .endfor
 
-OBJS = ${SRCS:.c=.o:.s=.o:T}
+OBJS = ${SRCS:S/.c/.o/:S/.s/.o/:T}
 .if ${LOADER}
-LOADER_OBJS = ${LOADER_SRCS:.c=.o:.s=.o:T}
+LOADER_OBJS = ${LOADER_SRCS:S/.c/.o/:S/.s/.o/:T}
 .endif
 
 kernel: kernel.k ${LOADER}
