@@ -67,6 +67,9 @@ void setup_tables() {
       identity_pt[i].phys_addr = i;
       identity_pt[i].present = 1;
       identity_pt[i].writable = 1;
+      kernel_pt[i].phys_addr = i;
+      kernel_pt[i].present = 1;
+      kernel_pt[i].writable = 1;
   }
 }
 
@@ -140,6 +143,7 @@ start() {
   __asm__ ("movl %%ebx, %0" : "=m"(mboot_info));
 
   loader_start(magic, mboot_info);
+  test_highmem();
 
   while (1);
 

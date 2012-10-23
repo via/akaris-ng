@@ -87,8 +87,8 @@ static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED,
 struct physmem *
 i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 
-  extern const int ebss;
-  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
+  extern const int start_free;
+  physaddr_t k_end = ((physaddr_t)&start_free + 4096) / 4096 * 4096;
   uint32 pruned;
 
   LIST_INIT(&i686_physmem.p.freelist);

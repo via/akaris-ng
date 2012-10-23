@@ -19,7 +19,7 @@ SECTIONS{
         sbss = .;
         *(COMMON)
         *(.bss)
-        ebss = .;
+        start_free = .;
     }
 
 
