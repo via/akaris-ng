@@ -28,3 +28,6 @@ clean:
 loader.elf: ${LOADER_OBJS}
 	${LD} -o loader.elf -T ${SRCROOT}/scripts/loader-${ARCH}.ld ${LOADER_OBJS} 
 
+install: kernel.k ${LOADER}
+	cp kernel.k ${SRCROOT}
+	-cp ${LOADER} ${SRCROOT}
