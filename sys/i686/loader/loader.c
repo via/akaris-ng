@@ -53,7 +53,6 @@ void enable_paging() {
   __asm__("movl %cr0, %eax\n"
           "orl  $0x80000000, %eax\n"
           "movl %eax, %cr0");
-          while (1);
 }
 
 void setup_tables() {
@@ -126,7 +125,6 @@ void loader_start(unsigned long magic, multiboot_info_t *info) {
   setup_tables();
   setup_gdt();
   enable_paging();
-  while (1);
 
 
 }

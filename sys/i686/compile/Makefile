@@ -13,7 +13,7 @@ SRCS+= ${SRCROOT}/i686/bootvideo.c \
 			 ${SRCROOT}/i686/i686_physmem.c \
 			 ${SRCROOT}/i686/stacksmash.c
 LOADER_SRCS+= ${SRCROOT}/i686/loader/headers.c \
-							${SRCROOT}/i686/loader/loader.c \
+		  	  ${SRCROOT}/i686/loader/loader.c 
 
 
 .include "${SRCROOT}/rules.mk"
