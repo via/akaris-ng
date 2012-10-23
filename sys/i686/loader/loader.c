@@ -24,28 +24,6 @@ struct i686_pde temp_pde[1024] __attribute__((aligned(4096)));
 struct i686_pte kernel_pt[1024] __attribute__((aligned(4096)));
 struct i686_pte identity_pt[1024] __attribute__((aligned(4096)));
 
-void * __stack_chk_guard = 0;
-
-void __stack_chk_guard_setup()
-{
-  unsigned char * p;
-  p = (unsigned char *) &__stack_chk_guard;
-  /* 32bit code, obviously */
-  p[0] = 0;
-  p[1] = 0;
-  p[2] = '\n';
-  p[3] = 133; /* <- this should probably be randomized */
-}
-
-void __attribute__((noreturn)) __stack_chk_fail()
-{ 
-  /* put your panic function or similar in here */
-  unsigned char * vid = (unsigned char *)0xB8000;
-  vid[1] = 7;
-  for(;;)
-    vid[0]++;
-}
-
 void enable_paging() {
 
   __asm__("movl %0, %%eax\n"
@@ -123,18 +101,9 @@ void setup_gdt() {
 }
 
 
-void loader_start(unsigned long magic, multiboot_info_t *info) {
-
-  setup_tables();
-  setup_gdt();
-  enable_paging();
-
-
-}
-
 
 void
-start() {
+loader_start() {
   unsigned long magic;
   multiboot_info_t *mboot_info;
 
@@ -142,8 +111,10 @@ start() {
   __asm__ ("movl %%eax, %0" : "=m"(magic));
   __asm__ ("movl %%ebx, %0" : "=m"(mboot_info));
 
-  loader_start(magic, mboot_info);
-  test_highmem();
+
+  setup_tables();
+  setup_gdt();
+  enable_paging();
 
   while (1);
 

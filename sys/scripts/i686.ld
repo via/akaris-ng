@@ -1,26 +1,32 @@
-ENTRY (start)
+ENTRY (loader_start)
 
 SECTIONS{
-    . = 0xC0000000;
+    . = 0x00100000;
 
-    .text :{
+    .loader :{
+      headers.o
+      loader.o
+    }
+
+    highstart = 0xC0000000;
+    . = highstart + .;
+    .text ALIGN(0x1000) : AT(ADDR(.text) - highstart) {
         *(.text)
     }
 
-    .rodata ALIGN (0x1000) : {
+    .rodata ALIGN (0x1000) : AT(ADDR(.rodata) - highstart) {
         *(.rodata)
     }
 
-    .data ALIGN (0x1000) : {
+    .data ALIGN (0x1000) : AT(ADDR(.data) - highstart) {
         *(.data)
     }
 
-    .bss : {
+    .bss : AT(ADDR(.bss) - highstart) {
         sbss = .;
         *(COMMON)
         *(.bss)
         start_free = .;
     }
-
 
 }

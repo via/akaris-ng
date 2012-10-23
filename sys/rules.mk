@@ -7,9 +7,6 @@ CFLAGS+=-Wall -Wextra -I${SRCROOT}/include -I${SRCROOT}/${ARCH} -std=c99
 .endfor
 
 OBJS = ${SRCS:S/.c/.o/:S/.s/.o/:T}
-.if ${LOADER}
-LOADER_OBJS = ${LOADER_SRCS:S/.c/.o/:S/.s/.o/:T}
-.endif
 
 kernel: kernel.k ${LOADER}
 
@@ -23,11 +20,7 @@ kernel.k: ${OBJS}
 .endif
 
 clean:
-	-rm kernel.k ${OBJS} .depend ${LOADER_OBJS} loader.elf
+	-rm kernel.k ${OBJS} .depend 
 
-loader.elf: ${LOADER_OBJS}
-	${LD} -o loader.elf -T ${SRCROOT}/scripts/loader-${ARCH}.ld ${LOADER_OBJS} 
-
-install: kernel.k ${LOADER}
+install: kernel.k 
 	cp kernel.k ${SRCROOT}
-	-cp ${LOADER} ${SRCROOT}
