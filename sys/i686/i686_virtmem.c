@@ -20,34 +20,11 @@ static void i686_set_cr3(struct i686_pde *cr3) {
 
 
 struct virtmem *
-i686_virtmem_init(struct kernel *k) {
-  physmem_error_t perr;
-  physaddr_t paddr;
-  unsigned int i;
+i686_virtmem_init(struct kernel *k VAR_UNUSED) {
 
-  assert(k->phys != NULL);
-  /* Allocate page for the pde list */
-  memset((void*)kernel_pd, 0, physmem_page_size(k->phys));
   i686_virtmem.kernel_pde_list = kernel_pd;
-  for (i = n_start_pde; i < n_start_pde + n_kernel_pde; ++i) {
-    memset(kernel_pts[i - n_start_pde], 0, physmem_page_size(k->phys));
-    i686_virtmem.kernel_pde_list[i].phys_addr = (physaddr_t)kernel_pts[i - n_start_pde] >> 10; /*Page count */
-    i686_virtmem.kernel_pde_list[i].global = 1;
-    i686_virtmem.kernel_pde_list[i].writable = 1;
-    i686_virtmem.kernel_pde_list[i].present = 1;
-  }
 
-  /* identity-map the first 4mb, just like the loader */
-  for (i = 0; i < 1024; ++i) {
-    kernel_pts[0][i].phys_addr = i;
-    kernel_pts[0][i].global = 1;
-    kernel_pts[0][i].writable = 1;
-    kernel_pts[0][i].present = 1;
-  }
-
-  i686_virtmem.virt.cpu = k->bsp;
-
-  i686_set_cr3(kernel_pd);
+  /* thanks to loader, our basic paging is already set up */
 
   return &i686_virtmem.virt;
 
