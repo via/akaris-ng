@@ -1,8 +1,10 @@
 akaris-ng is a from scratch rewrite of the akaris kernel. It is nowhere
 near complete, and it doesn't do much.
 
-The build system requires BSD make.  To build a specific target, change
-to the target's compile directory and build the kernel target:
+The build system requires BSD make and the BSD mkdep script. If you're not using
+a system that natively has mkdep, you can use the one provided in the scripts/
+directory. To build a specific target, change to the target's compile directory 
+and build the kernel target:
 
 cd sys/i686/compile
 make clean
