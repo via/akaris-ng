@@ -16,39 +16,41 @@
 #include "i686_virtmem.h"
 #include "i686_cpu.h"
 
-#define LOADER_STACKSIZE 64
+#define LOADER_STACKSIZE 256
 static char loader_stack[LOADER_STACKSIZE] __attribute__((aligned(4)));
 static struct i686_gdt_entry gdt[3] __attribute__((aligned(4)));
+extern int highstart;
 
-struct i686_pde temp_pde[1024] __attribute__((aligned(4096)));
-struct i686_pte kernel_pt[1024] __attribute__((aligned(4096)));
-struct i686_pte identity_pt[1024] __attribute__((aligned(4096)));
 
-void enable_paging() {
+void enable_paging(struct i686_pde *cr3) {
 
   __asm__("movl %0, %%eax\n"
-          "movl %%eax, %%cr3" :: "i"(temp_pde));
+          "movl %%eax, %%cr3" :: "m"(cr3));
   __asm__("movl %cr0, %eax\n"
           "orl  $0x80000000, %eax\n"
           "movl %eax, %cr0");
 }
 
 void setup_tables() {
-  temp_pde[0].phys_addr = (physaddr_t)&identity_pt / 4096;
-  temp_pde[0].present = 1;
-  temp_pde[0].writable = 1;
-  temp_pde[768].phys_addr = (physaddr_t)&kernel_pt / 4096;
-  temp_pde[768].present = 1;
+  struct i686_pde *kpd = (struct i686_pde *)((physaddr_t)kernel_pd - (physaddr_t)&highstart);
+  struct i686_pte (*kpts)[1024] = (struct i686_pte (*)[1024])((physaddr_t)kernel_pts - (physaddr_t)&highstart);
+
+  kpd[0].phys_addr = (physaddr_t)kpts[0] >> 12;
+  kpd[0].present = 1;
+  kpd[0].writable = 1;
+  kpd[768].phys_addr = (physaddr_t)kpts[0] >> 12;
+  kpd[768].present = 1;
+  kpd[768].writable = 1;
   int i;
 
   for (i = 0; i < 1024; ++i) {
-      identity_pt[i].phys_addr = i;
-      identity_pt[i].present = 1;
-      identity_pt[i].writable = 1;
-      kernel_pt[i].phys_addr = i;
-      kernel_pt[i].present = 1;
-      kernel_pt[i].writable = 1;
+      kpts[0][i].phys_addr = i;
+      kpts[0][i].present = 1;
+      kpts[0][i].writable = 1;
   }
+
+  enable_paging(kpd);
+
 }
 
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
@@ -112,9 +114,8 @@ loader_start() {
   __asm__ ("movl %%ebx, %0" : "=m"(mboot_info));
 
 
-  setup_tables();
   setup_gdt();
-  enable_paging();
+  setup_tables();
 
   i686_kmain(magic, mboot_info);
 
