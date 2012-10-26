@@ -8,7 +8,7 @@
 #define PAGE_SIZE 4096
 #define MAX_REGIONS 16
 
-
+#define PHYS_KERN_START 0x100000
 
 struct physmem *i686_physmem_alloc(struct kernel *, multiboot_info_t *);
 

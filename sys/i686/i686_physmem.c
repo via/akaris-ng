@@ -36,6 +36,11 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
     if (entry->type == 1) { /* Usable */
       unsigned int curpage;
 
+      physaddr_t position = (physaddr_t)&table[lastpage + 1];
+      position -= 0xc0000000;  /*Compensate for split */
+      
+      i686_set_identitymap_limit(k, position);
+
       for (curpage = startpage; curpage <= lastpage; ++curpage) {
         if (curpage * pagesize < 0x100000) { /*HACK, if <1MB, save for later*/
           LIST_INSERT_HEAD(&i686_physmem.p.bootlist, &table[curpage], pages);

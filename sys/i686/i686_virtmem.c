@@ -9,13 +9,38 @@
 struct i686_virtmem i686_virtmem;
 
 static const unsigned int n_kernel_pde = 256;
-static const unsigned int n_start_pde = 256;
+static const unsigned int n_start_pde = 768;
 struct i686_pde kernel_pd[1024] __attribute__((aligned));
 struct i686_pte kernel_pts[256][1024] __attribute__((aligned(4096)));
+struct i686_pte *kernel_flatpt = (struct i686_pte *)kernel_pts;
 
 static void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
           "movl %%eax, %%cr3" :: "m"(cr3));
+}
+
+/* Makes at the space from PHYS_KERN_START to limit identity mapped
+ * Does nothing if the limit is lowered -- eventually can shrink */
+void i686_set_identitymap_limit(struct kernel *k, 
+    physaddr_t limit) {
+
+  struct i686_virtmem *v = (struct i686_virtmem *)k->bsp->kvirt;
+  k->debug("Called with %x, old is %x\n", limit, v->identitymap_limit);
+
+  if (limit > v->identitymap_limit) {
+    int old_limit_page = v->identitymap_limit / 4096;
+    int new_limit_page = limit / 4096;
+    int curpage;
+    k->debug("Setting limit: %x -> %x\n", old_limit_page, new_limit_page);
+    
+    for (curpage = old_limit_page + 1; curpage <= new_limit_page; ++curpage) {
+      kernel_flatpt[curpage].phys_addr = curpage;
+      kernel_flatpt[curpage].present = 1;
+      kernel_flatpt[curpage].writable = 1;
+  } 
+    v->identitymap_limit = limit;
+
+  }
 }
 
 
@@ -23,6 +48,17 @@ struct virtmem *
 i686_virtmem_init(struct kernel *k VAR_UNUSED) {
 
   i686_virtmem.kernel_pde_list = kernel_pd;
+
+  unsigned int cur_pde;
+  for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
+      ++cur_pde) {
+    kernel_pd[cur_pde].phys_addr = (unsigned long)kernel_pts[cur_pde] >> 12;
+    kernel_pd[cur_pde].present = 1;
+    kernel_pd[cur_pde].writable = 1;
+  }
+
+
+  i686_virtmem.identitymap_limit = 0x3fffff;
 
   /* thanks to loader, our basic paging is already set up */
 
