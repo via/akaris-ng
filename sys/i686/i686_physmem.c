@@ -5,14 +5,17 @@
 #include "strfuncs.h"
 #include "i686_physmem.h"
 
-static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info, 
-    physaddr_t kernel_end) {
+#include "cpu.h"
+#include "virtual_memory.h"
+
+static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
 
   memory_map_t *entry = (memory_map_t *)info->mmap_addr;
-  struct physmem_page *table = (struct physmem_page *)kernel_end;
+  struct physmem_page *table = (struct physmem_page *)virtmem_sbrk(k->bsp->kvirt, 0);
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
   unsigned int pagesize = physmem_page_size(&i686_physmem.p);
+  virtaddr_t last_position = 0, position;
 
   k->debug("addr: %x  len: %d\n", info->mmap_addr, info->mmap_length);
   while (entry < (memory_map_t *)(info->mmap_addr + info->mmap_length)) {
@@ -36,10 +39,10 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
     if (entry->type == 1) { /* Usable */
       unsigned int curpage;
 
-      physaddr_t position = (physaddr_t)&table[lastpage + 1];
-      position -= 0xc0000000;  /*Compensate for split */
+      position = (virtaddr_t)&table[lastpage + 1];
+      last_position = position;
       
-      i686_set_identitymap_limit(k, position);
+      virtmem_sbrk(k->bsp->kvirt, position - last_position);
 
       for (curpage = startpage; curpage <= lastpage; ++curpage) {
         if (curpage * pagesize < 0x100000) { /*HACK, if <1MB, save for later*/
@@ -57,7 +60,6 @@ static physaddr_t i686_create_initial(struct kernel *k, multiboot_info_t *info,
 
     entry++;
   }
-  return kernel_end + total_pages * sizeof(struct physmem_page);
 
 }
 
@@ -68,15 +70,14 @@ static uint32 i686_physmem_page_size(const struct physmem *p VAR_UNUSED) {
 }
 
 static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED, 
-    multiboot_info_t *info VAR_UNUSED, 
-    physaddr_t newend VAR_UNUSED) {
+    multiboot_info_t *info VAR_UNUSED) {    
   /* TODO: Should use k's kernel, not just assume */
   extern int highstart;
 
-  unsigned int pagesize = physmem_page_size(&i686_physmem.p);
-  unsigned int start_kernel = 0x100000 / 0x1000;
-  unsigned int end_kernel = (newend - (physaddr_t)&highstart + (pagesize - 1)) / pagesize;
-  unsigned int curpage;
+  unsigned long  pagesize = physmem_page_size(&i686_physmem.p);
+  unsigned long start_kernel = (long)&highstart / 0x1000;
+  unsigned long end_kernel = ((long)virtmem_sbrk(k->bsp->kvirt, 0) + (pagesize - 1)) / pagesize;
+  unsigned long curpage;
   uint32 forcemarked = 0;
 
   for (curpage = start_kernel; curpage <= end_kernel; ++curpage) {
@@ -94,19 +95,16 @@ struct physmem *
 i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
 
   extern const int ebss;
-  physaddr_t k_end = ((physaddr_t)&ebss + 4096) / 4096 * 4096;
   uint32 pruned;
 
   LIST_INIT(&i686_physmem.p.freelist);
   LIST_INIT(&i686_physmem.p.bootlist);
 
-  physaddr_t newend = i686_create_initial(kernel, info, k_end);
+  i686_create_initial(kernel, info);
   
   /* Now we want to actually retroactively remove this area */
-  i686_physmem.start_address = k_end;
-  i686_physmem.last_address = newend;
 
-  pruned = i686_prune_memory(kernel, info, newend);
+  pruned = i686_prune_memory(kernel, info);
   kernel->debug("Pruned %d pages\n", pruned);
 
   i686_physmem.p.parent = kernel;

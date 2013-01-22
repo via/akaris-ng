@@ -25,6 +25,7 @@ struct virtmem_vfuncs {
       struct physmem_page **p, virtaddr_t addr);
   virtmem_error_t (*kernel_map_virt_to_phys)(struct virtmem *v, 
       struct physmem_page **p, virtaddr_t addr);
+  virtaddr_t (*kernel_sbrk)(struct virtmem *v, offset_t amt);
 };
 
 struct virtmem {
@@ -53,6 +54,11 @@ inline static virtmem_error_t
 virtmem_kernel_map_virt_to_phys(struct virtmem *v, struct physmem_page **p,
     virtaddr_t addr) {
   return v->v.kernel_map_virt_to_phys(v, p, addr);
+}
+
+inline static virtaddr_t
+virtmem_sbrk(struct virtmem *v, offset_t amt) {
+  return v->v.kernel_sbrk(v, amt);
 }
 
 

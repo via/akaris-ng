@@ -32,7 +32,7 @@ struct i686_pte {
 struct i686_virtmem {
   struct virtmem virt;
   struct i686_pde *kernel_pde_list;
-  physaddr_t identitymap_limit;
+  virtaddr_t identitymap_limit;
 };
 
 extern struct i686_pde kernel_pd[1024] __attribute__((aligned));
@@ -40,7 +40,6 @@ extern struct i686_pte kernel_pts[256][1024] __attribute__((aligned(4096)));
 
 
 struct virtmem *i686_virtmem_init(struct kernel *kernel);
-void i686_set_identitymap_limit(struct kernel *k, physaddr_t limit);
 
 
 

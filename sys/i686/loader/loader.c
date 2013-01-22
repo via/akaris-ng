@@ -21,6 +21,8 @@ static char loader_stack[LOADER_STACKSIZE] __attribute__((aligned(4)));
 static struct i686_gdt_entry gdt[3] __attribute__((aligned(4)));
 extern int highstart;
 
+extern void i686_kmain(unsigned long, multiboot_info_t *);
+
 
 void enable_paging(struct i686_pde *cr3) {
 
