@@ -16,8 +16,6 @@
 #include "i686_virtmem.h"
 #include "i686_cpu.h"
 
-#define LOADER_STACKSIZE 256
-static char loader_stack[LOADER_STACKSIZE] __attribute__((aligned(4)));
 static struct i686_gdt_entry gdt[3] __attribute__((aligned(4)));
 extern int highstart;
 
@@ -60,7 +58,7 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
   volatile struct {
     uint16 limit;
     uint32 base;
-  } __attribute__((packed)) gdtr;
+  } __attribute__((packed)) __attribute__((align(4))) gdtr;
 
   gdtr.base = (uint32)gdt;
   gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));
@@ -104,17 +102,24 @@ void setup_gdt() {
 
 }
 
+/* The following is a giant hack due to the lack of gcc supporting an
+ * i686 'naked' function attribute that would allow me to have
+ * loader_main as entry point */
 
+__asm(".local loader_stack\n"
+      ".comm loader_stack,256,4\n" 
+      ".global loader_start\n"
+      "loader_start:\n"
+      "movl loader_stack + 256 - 4, %esp\n"
+      "jmp loader_main\n");
 
 void
-loader_start() {
+loader_main() {
   unsigned long magic;
   multiboot_info_t *mboot_info;
-
-  __asm__ ("movl %0, %%esp" : : "i"(loader_stack + LOADER_STACKSIZE - 4));
-  __asm__ ("movl %%eax, %0" : "=m"(magic));
-  __asm__ ("movl %%ebx, %0" : "=m"(mboot_info));
-
+  
+  __asm__("movl %%eax, %0" : "=m"(magic));
+  __asm__("movl %%ebx, %0" : "=m"(mboot_info));
 
   setup_gdt();
   setup_tables();

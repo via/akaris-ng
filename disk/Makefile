@@ -1,8 +1,8 @@
 
-linux: ../sys/i686/compile/kernel.k 
+linux: ../sys/kernel.k 
 	cp source.img local.img
 	mount -o loop -t ext2 local.img mountpoint
-	cp ../sys/i686/compile/kernel.k mountpoint/
+	cp ../sys/kernel.k mountpoint/
 	umount mountpoint/
 
 openbsd: ../sys/kernel.k

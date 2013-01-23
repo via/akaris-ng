@@ -16,13 +16,11 @@ SECTIONS{
 
     .rodata ALIGN (0x1000) : AT(ADDR(.rodata) - highstart) {
         *(.rodata)
-        loader.o(.rodata)
     }
 
     .data ALIGN (0x1000) : AT(ADDR(.data) - highstart) {
         *(.data)
     }
-
     .bss : AT(ADDR(.bss) - highstart) {
         sbss = .;
         *(COMMON)
