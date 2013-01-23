@@ -110,11 +110,11 @@ __asm(".local loader_stack\n"
       ".comm loader_stack,256,4\n" 
       ".global loader_start\n"
       "loader_start:\n"
-      "movl loader_stack + 256 - 4, %esp\n"
+      "movl $loader_stack + 256 - 4, %esp\n"
       "jmp loader_main\n");
 
 void
-loader_main() {
+loader_main(void) {
   unsigned long magic;
   multiboot_info_t *mboot_info;
   
