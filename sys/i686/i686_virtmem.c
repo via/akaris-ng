@@ -14,6 +14,7 @@ static const unsigned long pg_size = 4096;
 struct i686_pde kernel_pd[1024] __attribute__((aligned));
 struct i686_pte kernel_pts[256][1024] __attribute__((aligned(4096)));
 struct i686_pte *kernel_flatpt = (struct i686_pte *)kernel_pts;
+extern const int highstart;
 
 static void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
@@ -24,8 +25,7 @@ static void i686_set_cr3(struct i686_pde *cr3) {
  * Does nothing if the limit is lowered -- eventually can shrink */
 static virtaddr_t i686_sbrk(struct virtmem *_v, offset_t amt) {
 
-  extern const int highstart;
-  struct i686_virtmem *v = (struct i686_virtmem *)v;
+  struct i686_virtmem *v = (struct i686_virtmem *)_v;
   virtaddr_t oldlimit;
 
   _v->cpu->k->debug("Called with %x, old end is %x\n", amt, v->identitymap_limit);
@@ -33,7 +33,7 @@ static virtaddr_t i686_sbrk(struct virtmem *_v, offset_t amt) {
   /* Round up */
   amt = (amt + 3) / 4 * 4;
 
-  long old_limit_page = (long)v->identitymap_limit + (pg_size - 1) / pg_size;
+  long old_limit_page = ((long)v->identitymap_limit + (pg_size - 1)) / pg_size;
   long new_limit_page = ((long)v->identitymap_limit + amt + (pg_size - 1)) / pg_size;
   long curpage;
   _v->cpu->k->debug("Setting limit: %x -> %x\n", old_limit_page, new_limit_page);
@@ -53,15 +53,16 @@ static virtaddr_t i686_sbrk(struct virtmem *_v, offset_t amt) {
 
 
 struct virtmem *
-i686_virtmem_init(struct kernel *k VAR_UNUSED) {
+i686_virtmem_init(struct kernel *k) {
 
   extern const int ebss;
   i686_virtmem.kernel_pde_list = kernel_pd;
+  i686_virtmem.virt.cpu = k->bsp;
 
   unsigned int cur_pde;
   for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
       ++cur_pde) {
-    kernel_pd[cur_pde].phys_addr = (unsigned long)kernel_pts[cur_pde] >> 12;
+    kernel_pd[cur_pde].phys_addr = ((unsigned long)(kernel_pts[cur_pde - n_start_pde]) - (unsigned long)&highstart) >> 12;
     kernel_pd[cur_pde].present = 1;
     kernel_pd[cur_pde].writable = 1;
   }
@@ -126,6 +127,7 @@ struct i686_virtmem i686_virtmem = {
       .kernel_free = i686_kernel_free,
       .kernel_virt_to_phys = i686_kernel_virt_to_phys,
       .kernel_map_virt_to_phys = i686_kernel_map_virt_to_phys,
+      .kernel_sbrk = i686_sbrk,
     },
   },
 };
