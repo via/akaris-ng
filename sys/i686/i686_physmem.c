@@ -14,6 +14,7 @@ static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
 
   memory_map_t *entry = (memory_map_t *)info->mmap_addr;
   struct physmem_page *table = (struct physmem_page *)virtmem_brk(k->bsp->kvirt, 0);
+  i686_physmem.start_address = (virtaddr_t)table;
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
   unsigned int pagesize = physmem_page_size(&i686_physmem.p);
@@ -57,6 +58,7 @@ static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
     total_pages += (lastpage - startpage + 1);
     i686_physmem.p.free_pages = free_pages;
     i686_physmem.p.total_pages = total_pages;
+    i686_physmem.last_address = position;
 
     entry++;
   }
@@ -69,18 +71,20 @@ static uint32 i686_physmem_page_size(const struct physmem *p VAR_UNUSED) {
   return PAGE_SIZE;
 }
 
-static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED, 
+static uint32 i686_prune_memory(struct kernel *k,
     multiboot_info_t *info VAR_UNUSED) {    
   
   unsigned long  pagesize = physmem_page_size(&i686_physmem.p);
-  unsigned long start_kernel = (long)&highstart / 0x1000;
+  unsigned long start_kernel = (long)&highstart / pagesize;
   unsigned long end_kernel = ((long)virtmem_brk(k->bsp->kvirt, 0) + (pagesize - 1)) / pagesize;
+  k->debug("start: %x  end: %x\n", start_kernel, end_kernel);
   unsigned long curpage;
   uint32 forcemarked = 0;
 
   for (curpage = start_kernel; curpage <= end_kernel; ++curpage) {
+    unsigned long physpage = curpage - ((unsigned long)&highstart/pagesize);
     struct physmem_page *page = physmem_phys_to_page(&i686_physmem.p,
-        curpage * pagesize);
+        physpage * pagesize);
     LIST_REMOVE(page, pages);
     forcemarked++;
   }
@@ -101,14 +105,10 @@ i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
   i686_create_initial(kernel, info);
   
   /* Now we want to actually retroactively remove this area */
-
   pruned = i686_prune_memory(kernel, info);
   kernel->debug("Pruned %d pages\n", pruned);
 
   i686_physmem.p.parent = kernel;
-
-
-
 
   return &i686_physmem.p;
 
