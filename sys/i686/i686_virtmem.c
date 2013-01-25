@@ -94,12 +94,12 @@ i686_kernel_free(struct virtmem *v VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
 }
 
 static virtmem_error_t
-i686_kernel_virt_to_phys(struct virtmem *_v,
+i686_kernel_virt_to_phys(const struct virtmem *_v,
     struct physmem_page **p, virtaddr_t addr) {
 
   uint32 n_pte, n_pde;
-  struct i686_pte *pte;
-  struct i686_virtmem *v = (struct i686_virtmem *)_v;
+  const struct i686_pte *pte;
+  const struct i686_virtmem *v = (const struct i686_virtmem *)_v;
   physaddr_t paddr;
 
   uint32 pagenum = (uint32)addr / physmem_page_size(_v->cpu->localmem);
