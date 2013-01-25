@@ -8,14 +8,16 @@
 #include "cpu.h"
 #include "virtual_memory.h"
 
+extern const int highstart;
+
 static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
 
   memory_map_t *entry = (memory_map_t *)info->mmap_addr;
-  struct physmem_page *table = (struct physmem_page *)virtmem_sbrk(k->bsp->kvirt, 0);
+  struct physmem_page *table = (struct physmem_page *)virtmem_brk(k->bsp->kvirt, 0);
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
   unsigned int pagesize = physmem_page_size(&i686_physmem.p);
-  virtaddr_t last_position = 0, position;
+  virtaddr_t position;
 
   k->debug("addr: %x  len: %d\n", info->mmap_addr, info->mmap_length);
   while (entry < (memory_map_t *)(info->mmap_addr + info->mmap_length)) {
@@ -29,8 +31,8 @@ static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
 
     unsigned int startpage = ((entry->base_addr_low + (pagesize - 1)) / 
       pagesize);
-    unsigned int lastpage = ((entry->base_addr_low + entry->length_low - 1)  
-         / pagesize);
+    unsigned int lastpage = (entry->base_addr_low + entry->length_low 
+                  + (pagesize - 1)) / pagesize;
 
     if (lastpage < startpage)
       lastpage = startpage;
@@ -40,9 +42,7 @@ static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
       unsigned int curpage;
 
       position = (virtaddr_t)&table[lastpage + 1];
-      last_position = position;
-      
-      virtmem_sbrk(k->bsp->kvirt, position - last_position);
+      virtmem_brk(k->bsp->kvirt, position);
 
       for (curpage = startpage; curpage <= lastpage; ++curpage) {
         if (curpage * pagesize < 0x100000) { /*HACK, if <1MB, save for later*/
@@ -71,12 +71,10 @@ static uint32 i686_physmem_page_size(const struct physmem *p VAR_UNUSED) {
 
 static uint32 i686_prune_memory(struct kernel *k VAR_UNUSED, 
     multiboot_info_t *info VAR_UNUSED) {    
-  /* TODO: Should use k's kernel, not just assume */
-  extern int highstart;
-
+  
   unsigned long  pagesize = physmem_page_size(&i686_physmem.p);
   unsigned long start_kernel = (long)&highstart / 0x1000;
-  unsigned long end_kernel = ((long)virtmem_sbrk(k->bsp->kvirt, 0) + (pagesize - 1)) / pagesize;
+  unsigned long end_kernel = ((long)virtmem_brk(k->bsp->kvirt, 0) + (pagesize - 1)) / pagesize;
   unsigned long curpage;
   uint32 forcemarked = 0;
 

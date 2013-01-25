@@ -22,30 +22,31 @@ static void i686_set_cr3(struct i686_pde *cr3) {
 }
 
 /* Makes at the space from PHYS_KERN_START to limit identity mapped
- * Does nothing if the limit is lowered -- eventually can shrink */
-static virtaddr_t i686_sbrk(struct virtmem *_v, offset_t amt) {
+ * Does nothing if the limit is lowered -- eventually can shrink,
+ * but regardless returns the old limit, so pass 0 in to get current limit */
+static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
 
   struct i686_virtmem *v = (struct i686_virtmem *)_v;
-  virtaddr_t oldlimit;
+  virtaddr_t oldlimit = v->identitymap_limit;
 
-  _v->cpu->k->debug("Called with %x, old end is %x\n", amt, v->identitymap_limit);
-
-  /* Round up */
-  amt = (amt + 3) / 4 * 4;
+  _v->cpu->k->debug("Called with %x, old end is %x\n", newend, v->identitymap_limit);
 
   long old_limit_page = ((long)v->identitymap_limit + (pg_size - 1)) / pg_size;
-  long new_limit_page = ((long)v->identitymap_limit + amt + (pg_size - 1)) / pg_size;
+  long new_limit_page = ((long)newend + (pg_size - 1)) / pg_size;
+
+  if (newend < v->identitymap_limit)
+    return oldlimit;
+
   long curpage;
   _v->cpu->k->debug("Setting limit: %x -> %x\n", old_limit_page, new_limit_page);
 
   for (curpage = old_limit_page + 1; curpage <= new_limit_page; ++curpage) {
     long phys_page = curpage - ((physaddr_t)&highstart / pg_size);
-    kernel_flatpt[curpage].phys_addr = phys_page;
-    kernel_flatpt[curpage].present = 1;
-    kernel_flatpt[curpage].writable = 1;
+    kernel_flatpt[phys_page].phys_addr = phys_page;
+    kernel_flatpt[phys_page].present = 1;
+    kernel_flatpt[phys_page].writable = 1;
   } 
-  oldlimit = v->identitymap_limit;
-  v->identitymap_limit += amt;
+  v->identitymap_limit = newend;
   
   return oldlimit;
 
@@ -127,7 +128,7 @@ struct i686_virtmem i686_virtmem = {
       .kernel_free = i686_kernel_free,
       .kernel_virt_to_phys = i686_kernel_virt_to_phys,
       .kernel_map_virt_to_phys = i686_kernel_map_virt_to_phys,
-      .kernel_sbrk = i686_sbrk,
+      .kernel_brk = i686_brk,
     },
   },
 };
