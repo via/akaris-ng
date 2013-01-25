@@ -2,10 +2,10 @@
 #include "multiboot.h"
 
 
-struct multiboot_header header = {
-  MULTIBOOT_HEADER_MAGIC,
-  MULTIBOOT_HEADER_FLAGS,
-  -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS),
+multiboot_header_t header = {
+  .magic = MULTIBOOT_HEADER_MAGIC,
+  .flags = MULTIBOOT_HEADER_FLAGS,
+  .checksum = -(MULTIBOOT_HEADER_MAGIC + MULTIBOOT_HEADER_FLAGS),
 }; 
 
 

@@ -143,7 +143,7 @@ void feeder_physmem_create(struct feeder_physmem *dest,
 
 /* Interfaces */
 
-struct physmem_page * physmem_phys_to_page(struct physmem *p, physaddr_t addr) {
+struct physmem_page * physmem_phys_to_page(struct physmem *p, const physaddr_t addr) {
 
   return p->v.phys_to_page(p, addr);
 

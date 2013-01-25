@@ -58,7 +58,7 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
   volatile struct {
     uint16 limit;
     uint32 base;
-  } __attribute__((packed)) __attribute__((align(4))) gdtr;
+  } __attribute__((packed)) gdtr;
 
   gdtr.base = (uint32)gdt;
   gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));

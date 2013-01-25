@@ -72,6 +72,8 @@ i686_virtmem_init(struct kernel *k) {
   i686_virtmem.identitymap_limit = &highstart;
   i686_brk((struct virtmem*)&i686_virtmem, &ebss);
 
+  i686_set_cr3((struct i686_pde *)((void *)kernel_pd - (void *)&highstart));
+
   /* thanks to loader, our basic paging is already set up */
 
   return &i686_virtmem.virt;

@@ -14,7 +14,7 @@
 
 #define T_STACK_SIZE 1024
 
-static char t_stack[T_STACK_SIZE] __attribute__((aligned(4)));
+static char t_stack[T_STACK_SIZE] __attribute__((aligned(4))) VAR_UNUSED;
 
 static struct kernel i686_kernel;
 static char debugbuf[256];

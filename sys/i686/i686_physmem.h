@@ -11,7 +11,7 @@
 
 #define PHYS_KERN_START 0x100000
 
-struct physmem *i686_physmem_alloc(struct kernel *, multiboot_info_t *);
+struct physmem *i686_physmem_alloc(struct kernel *, const multiboot_info_t *);
 
 struct i686physmem {
   struct physmem p;

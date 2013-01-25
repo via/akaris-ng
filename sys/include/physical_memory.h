@@ -54,13 +54,13 @@ struct physmem_vfuncs {
 
   /* Function API */
   struct physmem_page * (*phys_to_page)(const struct physmem *,
-      physaddr_t address);
+      const physaddr_t address);
   physaddr_t (* page_to_phys)(const struct physmem *, 
       const struct physmem_page *);
 
   physmem_error_t (*page_alloc)(struct physmem *, uint8 node, 
       physaddr_t *address);
-  physmem_error_t (*page_free)(struct physmem *, physaddr_t address);
+  physmem_error_t (*page_free)(struct physmem *, const physaddr_t address);
 
   struct physmem_stats (*stats_get)(const struct physmem *);
   uint32 (*page_size)(const struct physmem *);
@@ -80,9 +80,6 @@ struct physmem {
 
 
 /* Base implementations */
-
-struct physmem_page * common_physmem_phys_to_page(physaddr_t address);
-physaddr_t common_physmem_page_to_phys(const struct physmem_page *);
 
 physmem_error_t common_physmem_page_alloc(struct physmem *, uint8, physaddr_t *);
 physmem_error_t common_physmem_page_free(struct physmem *, physaddr_t);

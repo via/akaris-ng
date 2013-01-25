@@ -10,14 +10,14 @@
 
 extern const int highstart;
 
-static void i686_create_initial(struct kernel *k, multiboot_info_t *info) {
+static void i686_create_initial(struct kernel *k, const multiboot_info_t *info) {
 
   memory_map_t *entry = (memory_map_t *)info->mmap_addr;
   struct physmem_page *table = (struct physmem_page *)virtmem_brk(k->bsp->kvirt, 0);
   i686_physmem.start_address = (virtaddr_t)table;
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
-  unsigned int pagesize = physmem_page_size(&i686_physmem.p);
+  const unsigned int pagesize = physmem_page_size(&i686_physmem.p);
   virtaddr_t position;
 
   k->debug("addr: %x  len: %d\n", info->mmap_addr, info->mmap_length);
@@ -72,9 +72,9 @@ static uint32 i686_physmem_page_size(const struct physmem *p VAR_UNUSED) {
 }
 
 static uint32 i686_prune_memory(struct kernel *k,
-    multiboot_info_t *info VAR_UNUSED) {    
+    const multiboot_info_t *info VAR_UNUSED) {    
   
-  unsigned long  pagesize = physmem_page_size(&i686_physmem.p);
+  const unsigned long  pagesize = physmem_page_size(&i686_physmem.p);
   unsigned long start_kernel = (long)&highstart / pagesize;
   unsigned long end_kernel = ((long)virtmem_brk(k->bsp->kvirt, 0) + (pagesize - 1)) / pagesize;
   k->debug("start: %x  end: %x\n", start_kernel, end_kernel);
@@ -94,9 +94,8 @@ static uint32 i686_prune_memory(struct kernel *k,
 }
 
 struct physmem *
-i686_physmem_alloc(struct kernel *kernel, multiboot_info_t *info) {
+i686_physmem_alloc(struct kernel *kernel, const multiboot_info_t *info) {
 
-  extern const int ebss;
   uint32 pruned;
 
   LIST_INIT(&i686_physmem.p.freelist);
