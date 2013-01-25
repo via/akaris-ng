@@ -27,6 +27,9 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 static void i686_cpu_init(struct cpu *_cpu) {
 
   struct i686_cpu *cpu = (struct i686_cpu *)_cpu;
+  
+  feeder_physmem_create(&cpu->feeder, _cpu->k->phys, 1024, 1024);
+  cpu->c.localmem = (struct physmem *)&cpu->feeder;
 
   /* Apparently this is c99 and not c89, so this will only compile with gcc. */
   cpu->gdt[0] = (struct i686_gdt_entry) {
@@ -75,16 +78,21 @@ static void i686_cpu_schedule(struct cpu *_cpu VAR_UNUSED) {
 }
 
 
+static struct i686_cpu i686cpu = {
+  .c = {
+    .model = "Lolwut i686",
+    .v = {
+      .init = i686_cpu_init,
+      .schedule = i686_cpu_schedule,
+    },
+  },
+};
 
-void i686_cpu_alloc(struct i686_cpu *cpu, struct kernel *k) {
-
-  feeder_physmem_create(&cpu->feeder, k->phys, 1024, 1024);
-  cpu->c.k = k;
-  cpu->c.localmem = (struct physmem *)&cpu->feeder;
-  cpu->c.model = "Lolwut i686";
-  cpu->c.v.init = i686_cpu_init;
-  cpu->c.v.schedule = i686_cpu_schedule;
-
-
+struct i686_cpu *
+i686_cpu_alloc(struct kernel *k) {
+  
+  i686cpu.c.k = k;
+  return &i686cpu;
 
 }
+

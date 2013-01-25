@@ -17,7 +17,6 @@
 static char t_stack[T_STACK_SIZE] __attribute__((aligned(4)));
 
 static struct kernel i686_kernel;
-static struct i686_cpu bootproc;
 static char debugbuf[256];
 
 
@@ -50,20 +49,21 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
       0);
 
   i686_kernel.mutex = &i686_mutex;
-  i686_cpu_alloc(&bootproc, &i686_kernel);
-  i686_kernel.bsp = (struct cpu *)&bootproc;
+  i686_kernel.bsp = (struct cpu *)i686_cpu_alloc(&i686_kernel);
   i686_kernel.bsp->kvirt = i686_virtmem_init(&i686_kernel);
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
 
   i686_kernel.bsp->v.init(i686_kernel.bsp);
 
-  i686_debug("Location GDT entry: %x\n", bootproc.gdt);
-  while (1);
+  i686_debug("Location GDT entry: %x\n", ((struct i686_cpu *)i686_kernel.bsp)->gdt);
 
   struct physmem_page *p;
-  virtmem_error_t e = virtmem_kernel_virt_to_phys(i686_kernel.bsp->kvirt, &p, (virtaddr_t)0x100000);
-  assert(e == VIRTMEM_NOTPRESENT);
+  virtmem_error_t e = virtmem_kernel_virt_to_phys(i686_kernel.bsp->kvirt, &p, (virtaddr_t)0xc0100000);
+  assert(e == VIRTMEM_SUCCESS);
+  physaddr_t a = physmem_page_to_phys(i686_kernel.phys, p);
+  i686_debug("Phys address is %x\n", a);
+  while (1);
 
 
 

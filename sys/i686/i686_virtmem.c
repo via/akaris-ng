@@ -14,7 +14,7 @@ static const unsigned long pg_size = 4096;
 struct i686_pde kernel_pd[1024] __attribute__((aligned));
 struct i686_pte kernel_pts[256][1024] __attribute__((aligned(4096)));
 struct i686_pte *kernel_flatpt = (struct i686_pte *)kernel_pts;
-extern const int highstart;
+extern int highstart;
 
 static void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
@@ -56,7 +56,7 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
 struct virtmem *
 i686_virtmem_init(struct kernel *k) {
 
-  extern const int ebss;
+  extern int ebss;
   i686_virtmem.kernel_pde_list = kernel_pd;
   i686_virtmem.virt.cpu = k->bsp;
 
@@ -69,14 +69,14 @@ i686_virtmem_init(struct kernel *k) {
   }
 
 
-  i686_virtmem.identitymap_limit = (virtaddr_t)((((long)&ebss) + 3) / 4 * 4);
+  i686_virtmem.identitymap_limit = &highstart;
+  i686_brk((struct virtmem*)&i686_virtmem, &ebss);
 
   /* thanks to loader, our basic paging is already set up */
 
   return &i686_virtmem.virt;
 
 }
-
 
 static virtmem_error_t
 i686_kernel_alloc(struct virtmem *v VAR_UNUSED, virtaddr_t *addr VAR_UNUSED, 
@@ -102,14 +102,14 @@ i686_kernel_virt_to_phys(struct virtmem *_v,
 
   uint32 pagenum = (uint32)addr / physmem_page_size(_v->cpu->localmem);
   n_pte = pagenum % 1024;
-  n_pde = pagenum / 1024;
+  n_pde = (pagenum / 1024) - n_start_pde;
 
   assert(n_pde < n_kernel_pde);
-  pte = &((struct i686_pte *)(v->kernel_pde_list[n_pde].phys_addr << 10))[n_pte];
+  pte = &((struct i686_pte *)(v->kernel_pde_list[n_pde].phys_addr << 12))[n_pte];
   if (!pte->present)
     return VIRTMEM_NOTPRESENT;
-  paddr = pte->phys_addr << 10; /*Convert to address */
-  *p = physmem_phys_to_page(_v->cpu->localmem, paddr);
+  paddr = pte->phys_addr << 12; /*Convert to address */
+  *p = physmem_phys_to_page(_v->cpu->k->phys, paddr);
 
   return VIRTMEM_SUCCESS;
 }

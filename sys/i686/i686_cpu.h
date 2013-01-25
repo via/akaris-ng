@@ -32,7 +32,7 @@ struct i686_cpu {
 
 
 
-void i686_cpu_alloc(struct i686_cpu *, struct kernel *);
+struct i686_cpu *i686_cpu_alloc(struct kernel *);
 
 
 #endif
