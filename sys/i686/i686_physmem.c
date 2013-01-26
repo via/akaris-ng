@@ -18,7 +18,7 @@ static void i686_create_initial(struct kernel *k, const multiboot_info_t *info) 
   unsigned int total_pages = 0;
   unsigned int free_pages = 0;
   const unsigned int pagesize = physmem_page_size(&i686_physmem.p);
-  virtaddr_t position;
+  virtaddr_t position = NULL;
 
   k->debug("addr: %x  len: %d\n", info->mmap_addr, info->mmap_length);
   while (entry < (memory_map_t *)(info->mmap_addr + info->mmap_length)) {

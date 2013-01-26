@@ -37,9 +37,11 @@ void setup_tables() {
   int i, j;
 
   /* Quick and dirty clearing of all pagetables */
-  for (i = 0; i < 256; ++i)
-    for (j = 0; j < 1024; ++j)
-      *((int *)&kpts[i][j]) = 0;
+  for (i = 0; i < 256; ++i) {
+    for (j = 0; j < 1024; ++j) {
+      kpts[i][j] = (struct i686_pte){0};
+    }
+  }
 
   kpd[0].phys_addr = (physaddr_t)kpts[0] >> 12;
   kpd[0].present = 1;
