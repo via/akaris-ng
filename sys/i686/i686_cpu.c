@@ -27,14 +27,8 @@ static void i686_cpu_set_gdt(struct i686_segment_entry *gdt, int length) {
 
 }
 
-static void i686_cpu_init(struct cpu *_cpu) {
+static void i686_setup_gdt(struct i686_cpu *cpu) {
 
-  struct i686_cpu *cpu = (struct i686_cpu *)_cpu;
-  
-  feeder_physmem_create(&cpu->feeder, _cpu->k->phys, 1024, 1024);
-  cpu->c.localmem = (struct physmem *)&cpu->feeder;
-
-  /* Apparently this is c99 and not c89, so this will only compile with gcc. */
   cpu->gdt[0] = (struct i686_segment_entry) {
     .limit_low = 0, .base_low = 0, .base_mid = 0,
     .type = 0, .system = 0, .dpl = 0, .present = 0,
@@ -71,6 +65,29 @@ static void i686_cpu_init(struct cpu *_cpu) {
   };
 
   i686_cpu_set_gdt(cpu->gdt, 5);
+}
+
+static void i686_setup_idt(struct i686_cpu *cpu) {
+
+  cpu->idt[0] = (struct i686_segment_entry) {
+    .limit_low = 0, .base_low = 0, .base_mid = 0,
+    .type = 0x0, .system = 1, .dpl = 0, .present = 1,
+    .limit_high = 0, .avl = 0, .reserved = 0,
+    .op_size = 1, .granularity = 1, .base_high = 0
+  };
+
+}
+
+static void i686_cpu_init(struct cpu *_cpu) {
+
+  struct i686_cpu *cpu = (struct i686_cpu *)_cpu;
+  
+  feeder_physmem_create(&cpu->feeder, _cpu->k->phys, 1024, 1024);
+  cpu->c.localmem = (struct physmem *)&cpu->feeder;
+
+  i686_setup_gdt(cpu);
+  i686_setup_idt(cpu);
+
 
 }
 

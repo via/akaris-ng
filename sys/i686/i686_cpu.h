@@ -26,6 +26,7 @@ struct i686_cpu {
   struct cpu c;
   struct feeder_physmem feeder;
   struct i686_segment_entry gdt[5] __attribute__((aligned(4)));
+  struct i686_segment_entry idt[256] __attribute__((aligned(4)));
 
 
   /* CPUID, GDT */
