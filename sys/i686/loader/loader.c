@@ -34,6 +34,12 @@ void enable_paging(struct i686_pde *cr3) {
 void setup_tables() {
   struct i686_pde *kpd = (struct i686_pde *)((physaddr_t)kernel_pd - (physaddr_t)&highstart);
   struct i686_pte (*kpts)[1024] = (struct i686_pte (*)[1024])((physaddr_t)kernel_pts - (physaddr_t)&highstart);
+  int i, j;
+
+  /* Quick and dirty clearing of all pagetables */
+  for (i = 0; i < 256; ++i)
+    for (j = 0; j < 1024; ++j)
+      *((int *)&kpts[i][j]) = 0;
 
   kpd[0].phys_addr = (physaddr_t)kpts[0] >> 12;
   kpd[0].present = 1;
@@ -41,7 +47,6 @@ void setup_tables() {
   kpd[768].phys_addr = (physaddr_t)kpts[0] >> 12;
   kpd[768].present = 1;
   kpd[768].writable = 1;
-  int i;
 
   for (i = 0; i < 1024; ++i) {
       kpts[0][i].phys_addr = i;
