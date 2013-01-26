@@ -42,6 +42,7 @@ size_t strcpy(char *dst, const char *src) {
   while (*s != '\0')
     *dst++ = *s++;
 
+  *dst = '\0';
   return (s - src);
 }
 
