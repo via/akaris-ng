@@ -82,5 +82,21 @@ static inline void kmem_cache_free(struct kmem_cache *k, void *p) {
   k->v->free(k, p);
 }
 
+static inline void kmem_init(struct kmem_allocator *k) {
+  k->av.kmem_init();
+}
+
+static inline struct kmem_cache *
+kmem_alloc(struct kmem_allocator *k) {
+  return k->av.kmem_cache_alloc();
+}
+
+static inline kmem_error_t kmem_cache_init( struct kmem_allocator *k, 
+    struct kmem_cache *c, struct cpu *cpu, const char *name, size_t size, 
+    void (*ctor)(void *), void (*dtor)(void *)) {
+  return k->av.kmem_cache_init(c, cpu, name, size, ctor, dtor);
+}
+
+
 #endif
 

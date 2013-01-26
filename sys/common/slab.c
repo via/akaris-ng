@@ -57,7 +57,8 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
 
   struct kmem_slab *s = NULL;
   void *obj = NULL;
-  virtmem_error_t err;
+  virtmem_error_t verr;
+  physmem_error_t perr;
 
   if (!SLIST_EMPTY(&cache->slabs_partial)) {
     s = SLIST_FIRST(&cache->slabs_partial);
@@ -67,11 +68,20 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
     SLIST_INSERT_HEAD(&cache->slabs_partial, s, slabs);
   } else {
     /*We have no slabs in either empty or partial, get some */
-    err = virtmem_kernel_alloc(cache->cpu->kvirt, (void **)&s, 1);
-    if (err != VIRTMEM_SUCCESS) {
+    virtaddr_t vaddr;
+    physaddr_t paddr;
+    verr = virtmem_kernel_alloc(cache->cpu->kvirt, &vaddr, 1);
+    if (verr != VIRTMEM_SUCCESS) {
       /* Possibly attempt reaping? But now just fail */
       return NULL;
     }
+    perr = physmem_page_alloc(cache->cpu->localmem, 0, &paddr);
+    if (perr != PHYSMEM_SUCCESS) {
+      /* Possibly attempt reaping? But now just fail */
+      return NULL;
+    }
+    virtmem_kernel_map_virt_to_phys(cache->cpu->kvirt, paddr, vaddr);
+    s = (struct kmem_slab *)vaddr;
     s->n_pages = 1;
     kmem_initialize_slab(cache, s);
     SLIST_INSERT_HEAD(&cache->slabs_partial, s, slabs);

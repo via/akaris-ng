@@ -58,7 +58,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   physaddr_t p;
   virtmem_error_t e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
   assert(e1 == VIRTMEM_SUCCESS);
-  physmem_error_t e2 = physmem_page_alloc(i686_kernel.phys, 0, &p);
+  physmem_error_t e2 = physmem_page_alloc(i686_kernel.bsp->localmem, 0, &p);
   assert(e2 == PHYSMEM_SUCCESS);
   virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, p, a);
   i686_debug("Allocated address: %x(->%x)\n", a, p);
@@ -68,7 +68,15 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   strcpy(s, "This shows the validity of this memory");
   i686_debug("%x contains: %s\n", a, s);
 
+  kmem_init(i686_kernel.bsp->allocator);
+  struct kmem_cache *s1 = kmem_alloc(i686_kernel.bsp->allocator);
+  kmem_cache_init(i686_kernel.bsp->allocator,
+      s1, i686_kernel.bsp, "test", 128, NULL, NULL);
 
+  char *t1 = kmem_cache_alloc(s1);
+  i686_debug("cache at %x provided us with %x\n", s1, t1);
+  strcpy(t1, "This shows the validity of the slab allocation");
+  i686_debug("%x contains: %s\n", t1, t1);
 
 
   while (1);
