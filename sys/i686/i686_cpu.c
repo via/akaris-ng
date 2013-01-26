@@ -1,5 +1,6 @@
 #include "kernel.h"
 #include "physical_memory.h"
+#include "strfuncs.h"
 #include "i686_cpu.h"
 #include "slab.h"
 #include "i686_slab.h"
@@ -23,6 +24,20 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
           "movw %%ax, %%fs\n"
           "movw %%ax, %%gs\n"
           "movw %%ax, %%ss\n": : "m"(gdtr));
+
+}
+
+static void i686_cpu_set_idt(struct i686_idt_entry *idt, int length) {
+
+  volatile struct {
+    uint16 limit;
+    uint32 base;
+  } __attribute__((packed)) idtr;
+
+  idtr.base = (uint32)idt;
+  idtr.limit = (uint16)(length * sizeof(struct i686_idt_entry));
+
+  __asm__("lidt %0\n" : : "m"(idtr));
 
 }
 
@@ -66,14 +81,27 @@ static void i686_setup_gdt(struct i686_cpu *cpu) {
   i686_cpu_set_gdt(cpu->gdt, 5);
 }
 
+static void i686_pagefault() {
+
+  while (1);
+
+}
+
 static void i686_setup_idt(struct i686_cpu *cpu) {
 
-  cpu->idt[0] = (struct i686_segment_entry) {
-    .limit_low = 0, .base_low = 0, .base_mid = 0,
-    .type = 0x0, .system = 1, .dpl = 0, .present = 1,
-    .limit_high = 0, .avl = 0, .reserved = 0,
-    .op_size = 1, .granularity = 1, .base_high = 0
+  memset(cpu->idt, 0, sizeof(cpu->idt));
+
+  cpu->idt[E_PF] = (struct i686_idt_entry) {
+    .offset_low = (unsigned int)i686_pagefault & 0xFFFF, 
+    .offset_high = (unsigned int)i686_pagefault >> 16,
+    .zeroes = 0,
+    .type = 0xE, /* 32 bit interrupt */
+    .segment = 0x8,
+    .dpl = 0,
+    .present = 1,
   };
+
+  i686_cpu_set_idt(cpu->idt, 256);
 
 }
 

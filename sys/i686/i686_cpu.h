@@ -21,11 +21,28 @@ struct i686_gdt_entry {
   uint8 base_high;
 } __attribute__((packed));
 
+
+struct i686_idt_entry {
+  uint16 offset_low;
+  uint16 segment;
+  unsigned int reserved : 5;
+  unsigned int zeroes : 3;
+  unsigned int type : 5;
+  unsigned int dpl : 2;
+  unsigned int present : 1;
+  uint16 offset_high;
+} __attribute__((packed));
+  
+typedef enum {
+  E_DE = 0,
+  E_PF = 14,
+} i686_exception;
+
 struct i686_cpu {
   struct cpu c;
   struct feeder_physmem feeder;
   struct i686_gdt_entry gdt[5] __attribute__((aligned(4)));
-  struct i686_gdt_entry idt[256] __attribute__((aligned(4)));
+  struct i686_idt_entry idt[256] __attribute__((aligned(4)));
 
 
   /* CPUID, GDT */

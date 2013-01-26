@@ -78,6 +78,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   strcpy(t1, "This shows the validity of the slab allocation");
   i686_debug("%x contains: %s\n", t1, t1);
 
+  *((int *)0x50000000) = 5;
 
   while (1);
 
