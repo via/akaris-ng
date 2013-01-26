@@ -58,11 +58,23 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
   i686_debug("Location GDT entry: %x\n", ((struct i686_cpu *)i686_kernel.bsp)->gdt);
 
-  struct physmem_page *p;
-  virtmem_error_t e = virtmem_kernel_virt_to_phys(i686_kernel.bsp->kvirt, &p, (virtaddr_t)0xc0100000);
-  assert(e == VIRTMEM_SUCCESS);
-  physaddr_t a = physmem_page_to_phys(i686_kernel.phys, p);
-  i686_debug("Phys address is %x\n", a);
+  virtaddr_t a;
+  physaddr_t p;
+  virtmem_error_t e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
+  assert(e1 == VIRTMEM_SUCCESS);
+  physmem_error_t e2 = physmem_page_alloc(i686_kernel.phys, 0, &p);
+  assert(e2 == PHYSMEM_SUCCESS);
+  virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, p, a);
+  i686_debug("Allocated address: %x(->%x)\n", a, p);
+
+  char *s = (char *)a;
+
+  strcpy(s, "This shows the validity of this memory");
+  i686_debug("%x contains: %s\n", a, s);
+
+
+
+
   while (1);
 
 
