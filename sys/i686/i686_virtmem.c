@@ -80,45 +80,89 @@ i686_virtmem_init(struct kernel *k) {
 
 }
 
+/* Finds an unused kernelspace virtual address (page). 
+ * Once this is used brk is unusable and can result in unpredictable behaviour.
+ */
 static virtmem_error_t
-i686_kernel_alloc(struct virtmem *v VAR_UNUSED, virtaddr_t *addr VAR_UNUSED, 
-                  unsigned int n_pages VAR_UNUSED) {
+i686_kernel_alloc(struct virtmem *v VAR_UNUSED, virtaddr_t *addr, 
+                  unsigned int n_pages) {
+  /* For now we can just scan the kernel_pt list for an unused page */
+  /* TODO: this won't be doable by multipple processors without locking.
+   * really a better solution is needed, this is temporary */
 
-  return VIRTMEM_SUCCESS;
+  unsigned long pgindex;
+  struct i686_pte *pte;
+
+  assert (n_pages == 1); /* No buddy allocator yet */
+
+  for (pgindex = 0; pgindex < 1024 * n_kernel_pde; ++pgindex) {
+    pte = &kernel_flatpt[pgindex];
+    if (pte->present == 0) {
+      pte->present = 1;
+      *addr = pgindex * pg_size + (virtaddr_t)&highstart;
+      return VIRTMEM_SUCCESS;
+    }
+  }
+
+      /* Unused, so we can use it*/
+
+
+  return VIRTMEM_OOM;
 }
 
 static virtmem_error_t
 i686_kernel_free(struct virtmem *v VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
 
+                
   return VIRTMEM_SUCCESS;
 }
 
-static virtmem_error_t
-i686_kernel_virt_to_phys(const struct virtmem *_v,
-    struct physmem_page **p, virtaddr_t addr) {
-
+static struct i686_pte *
+i686_virt_to_pte(struct i686_virtmem *v, virtaddr_t addr) {
   uint32 n_pte, n_pde;
-  const struct i686_pte *pte;
-  const struct i686_virtmem *v = (const struct i686_virtmem *)_v;
-  physaddr_t paddr;
+  struct i686_pte *pte;
 
-  uint32 pagenum = (uint32)addr / physmem_page_size(_v->cpu->localmem);
+  uint32 pagenum = (uint32)addr / physmem_page_size(v->virt.cpu->localmem);
   n_pte = pagenum % 1024;
   n_pde = (pagenum / 1024) - n_start_pde;
 
   assert(n_pde < n_kernel_pde);
   pte = &((struct i686_pte *)(v->kernel_pde_list[n_pde].phys_addr << 12))[n_pte];
+
+  return pte;
+}
+
+
+static virtmem_error_t
+i686_kernel_virt_to_phys(struct virtmem *_v,
+    struct physmem_page **p, virtaddr_t addr) {
+
+  struct i686_virtmem *v = (struct i686_virtmem *)_v;
+  physaddr_t paddr;
+
+  const struct i686_pte *pte = i686_virt_to_pte(v, addr);
+
   if (!pte->present)
     return VIRTMEM_NOTPRESENT;
   paddr = pte->phys_addr << 12; /*Convert to address */
-  *p = physmem_phys_to_page(_v->cpu->k->phys, paddr);
+  if (p)
+    *p = physmem_phys_to_page(_v->cpu->k->phys, paddr);
 
   return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t
-i686_kernel_map_virt_to_phys(struct virtmem *v VAR_UNUSED,
-    struct physmem_page **p VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
+i686_kernel_map_virt_to_phys(struct virtmem *_v,
+    physaddr_t p, virtaddr_t addr ) {
+
+  struct i686_virtmem *v = (struct i686_virtmem *)_v;
+  struct i686_pte *pte = i686_virt_to_pte(v, addr);
+
+  assert (pte->present = 1);
+  if (!pte->present)
+    return VIRTMEM_NOTPRESENT;  
+  
+  pte->phys_addr = p >> 12;
   return VIRTMEM_SUCCESS;
 }
 

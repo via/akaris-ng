@@ -21,10 +21,10 @@ struct virtmem_vfuncs {
   virtmem_error_t (*kernel_alloc)(struct virtmem *v, virtaddr_t *, 
       unsigned int n_pages);
   virtmem_error_t (*kernel_free)(struct virtmem *v, virtaddr_t);
-  virtmem_error_t (*kernel_virt_to_phys)(const struct virtmem *v, 
+  virtmem_error_t (*kernel_virt_to_phys)(struct virtmem *v, 
       struct physmem_page **p, virtaddr_t addr);
   virtmem_error_t (*kernel_map_virt_to_phys)(struct virtmem *v, 
-      struct physmem_page **p, virtaddr_t addr);
+      physaddr_t p, virtaddr_t addr);
   virtaddr_t (*kernel_brk)(struct virtmem *v, virtaddr_t amt);
 };
 
@@ -45,13 +45,13 @@ virtmem_kernel_free(struct virtmem *v, virtaddr_t addr) {
 }
 
 inline static virtmem_error_t
-virtmem_kernel_virt_to_phys(const struct virtmem *v, struct physmem_page **p, 
+virtmem_kernel_virt_to_phys(struct virtmem *v, struct physmem_page **p, 
     virtaddr_t addr) {
   return v->v.kernel_virt_to_phys(v, p, addr);
 }
 
 inline static virtmem_error_t
-virtmem_kernel_map_virt_to_phys(struct virtmem *v, struct physmem_page **p,
+virtmem_kernel_map_virt_to_phys(struct virtmem *v, physaddr_t p,
     virtaddr_t addr) {
   return v->v.kernel_map_virt_to_phys(v, p, addr);
 }
