@@ -5,7 +5,7 @@
 #include "physical_memory.h"
 #include "cpu.h"
 
-struct i686_gdt_entry {
+struct i686_segment_entry {
   uint16 limit_low;
   uint16 base_low;
   uint8 base_mid;
@@ -21,10 +21,11 @@ struct i686_gdt_entry {
   uint8 base_high;
 } __attribute__((packed));
 
+
 struct i686_cpu {
   struct cpu c;
   struct feeder_physmem feeder;
-  struct i686_gdt_entry gdt[5] __attribute__((aligned(4)));
+  struct i686_segment_entry gdt[5] __attribute__((aligned(4)));
 
 
   /* CPUID, GDT */

@@ -16,7 +16,7 @@
 #include "i686_virtmem.h"
 #include "i686_cpu.h"
 
-static struct i686_gdt_entry gdt[3] __attribute__((aligned(4)));
+static struct i686_segment_entry gdt[3] __attribute__((aligned(4)));
 extern int highstart;
 #define T_STACK_SIZE 1024
 char t_stack[T_STACK_SIZE] __attribute__((aligned(4))) = {0};
@@ -62,7 +62,7 @@ void setup_tables() {
 
 }
 
-static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
+static void i686_cpu_set_gdt(struct i686_segment_entry *gdt, int length) {
 
   volatile struct {
     uint16 limit;
@@ -70,7 +70,7 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
   } __attribute__((packed)) gdtr;
 
   gdtr.base = (uint32)gdt;
-  gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));
+  gdtr.limit = (uint16)(length * sizeof(struct i686_segment_entry));
 
   __asm__("lgdt %0\n"
           "ljmp $0x08, $use_new_gdt\n" 
@@ -86,21 +86,21 @@ static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 
 void setup_gdt() {
 
-  gdt[0] = (struct i686_gdt_entry) {
+  gdt[0] = (struct i686_segment_entry) {
     .limit_low = 0, .base_low = 0, .base_mid = 0,
     .type = 0, .system = 0, .dpl = 0, .present = 0,
     .limit_high = 0, .avl = 0, .reserved = 0,
     .op_size = 0, .granularity = 0, .base_high = 0,
   };
 
-  gdt[1] = (struct i686_gdt_entry) {
+  gdt[1] = (struct i686_segment_entry) {
     .limit_low = 0xFFFF, .base_low = 0, .base_mid = 0,
     .type = 0xA, .system = 1, .dpl = 0, .present = 1,
     .limit_high = 0xF, .avl = 0, .reserved = 0,
     .op_size = 1, .granularity = 1, .base_high = 0,
   };
 
-  gdt[2] = (struct i686_gdt_entry) {
+  gdt[2] = (struct i686_segment_entry) {
     .limit_low = 0xFFFF, .base_low = 0, .base_mid = 0,
     .type = 0x2, .system = 1, .dpl = 0, .present = 1,
     .limit_high = 0xF, .avl = 0, .reserved = 0,
