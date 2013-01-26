@@ -18,6 +18,8 @@
 
 static struct i686_gdt_entry gdt[3] __attribute__((aligned(4)));
 extern int highstart;
+#define T_STACK_SIZE 1024
+char t_stack[T_STACK_SIZE] __attribute__((aligned(4))) = {0};
 
 extern void i686_kmain(unsigned long, multiboot_info_t *);
 
@@ -113,11 +115,10 @@ void setup_gdt() {
  * i686 'naked' function attribute that would allow me to have
  * loader_main as entry point */
 
-__asm(".local loader_stack\n"
-      ".comm loader_stack,256,4\n" 
-      ".global loader_start\n"
+
+__asm(".global loader_start\n"
       "loader_start:\n"
-      "movl $loader_stack + 256 - 4, %esp\n"
+      "movl $t_stack + 1024 - 4, %esp\n"
       "jmp loader_main\n");
 
 void
@@ -130,6 +131,9 @@ loader_main(void) {
 
   setup_gdt();
   setup_tables();
+
+  /* Switch stack to one in highmemory */
+  __asm__("addl %0, %%esp\n": : "i"(&highstart) : "%esp");
 
   i686_kmain(magic, mboot_info);
 

@@ -1,6 +1,8 @@
 #include "kernel.h"
 #include "physical_memory.h"
 #include "i686_cpu.h"
+#include "slab.h"
+#include "i686_slab.h"
 
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 
@@ -92,6 +94,7 @@ struct i686_cpu *
 i686_cpu_alloc(struct kernel *k) {
   
   i686cpu.c.k = k;
+  i686cpu.c.allocator = &i686_kmem_allocator;
   return &i686cpu;
 
 }

@@ -5,7 +5,7 @@ SECTIONS{
 
     .loader :{
       headers.o
-      loader.o(.text .data .rodata .bss)
+      loader.o(.text .data .rodata .bss .rel.text)
     }
 
     highstart = 0xC0000000;

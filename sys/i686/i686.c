@@ -10,11 +10,8 @@
 #include "i686_cpu.h"
 #include "i686_virtmem.h"
 #include "i686_physmem.h"
+#include "slab.h"
 
-
-#define T_STACK_SIZE 1024
-
-static char t_stack[T_STACK_SIZE] __attribute__((aligned(4))) VAR_UNUSED;
 
 static struct kernel i686_kernel;
 static char debugbuf[256];
@@ -34,7 +31,6 @@ static void i686_debug(const char *fmt, ...) {
 
 void
 i686_kmain(unsigned long magic, multiboot_info_t *info) {
-
 
   bootvideo_cls();
 

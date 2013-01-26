@@ -10,6 +10,7 @@ SRCS+= ${SRCROOT}/i686/bootvideo.c \
 			 ${SRCROOT}/i686/i686_virtmem.c \
 			 ${SRCROOT}/i686/i686_mutex.c \
 			 ${SRCROOT}/i686/i686_physmem.c \
+			 ${SRCROOT}/i686/i686_slab.c \
 			 ${SRCROOT}/i686/stacksmash.c \
              ${SRCROOT}/i686/loader/headers.c \
 		  	 ${SRCROOT}/i686/loader/loader.c \
