@@ -36,6 +36,15 @@ void *memcpy(void *dst, const void *src, size_t siz) {
   return dst;
 }
 
+size_t strcpy(char *dst, const char *src) {
+  const char *s = src;
+
+  while (*s != '\0')
+    *dst++ = *s++;
+
+  return (s - src);
+}
+
 
 void itoa (char *buf, int base, int d)
 {
