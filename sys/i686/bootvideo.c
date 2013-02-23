@@ -19,7 +19,7 @@ static void bootvideo_scroll() {
     for (curpos = 0; curpos < (ROWS - 1) * COLS; ++curpos) {
       vmem[curpos] = vmem[curpos + COLS];
     }
-    memset(vmem + COLS * (ROWS - 1), 0, COLS);
+    memset(vmem + COLS * (ROWS - 1), 0, COLS * 2);
     curY = ROWS - 1;
   }
 }
