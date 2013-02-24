@@ -52,5 +52,18 @@ struct i686_cpu {
 
 struct i686_cpu *i686_cpu_alloc(struct kernel *);
 
+#define I686_INT_HANDLER_WERR(INTNUM, DEST) __asm__( \
+    "i686_int_handler_"#INTNUM":\n" \
+    "  pushl $"#INTNUM"\n" \
+    "  jmp "#DEST);
+
+#define I686_INT_HANDLER_NOERR(INTNUM, DEST) __asm__( \
+    "i686_int_handler_"#INTNUM":\n" \
+    "  pushl $0\n" \
+    "  pushl $"#INTNUM"\n" \
+    "  jmp "#DEST);
+
+void i686_int_handler_14(void);
+
 
 #endif

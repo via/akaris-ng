@@ -5,6 +5,20 @@
 #include "slab.h"
 #include "i686_slab.h"
 
+/* Define entry points for the exception handlers */
+
+I686_INT_HANDLER_WERR(0, i686_int_handler)
+I686_INT_HANDLER_WERR(1, i686_int_handler)
+I686_INT_HANDLER_WERR(2, i686_int_handler)
+I686_INT_HANDLER_WERR(3, i686_int_handler)
+I686_INT_HANDLER_WERR(4, i686_int_handler)
+I686_INT_HANDLER_WERR(5, i686_int_handler)
+I686_INT_HANDLER_WERR(6, i686_int_handler)
+I686_INT_HANDLER_WERR(7, i686_int_handler)
+I686_INT_HANDLER_WERR(8, i686_int_handler)
+I686_INT_HANDLER_WERR(9, i686_int_handler)
+I686_INT_HANDLER_WERR(14, i686_int_handler)
+
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 
   volatile struct {
@@ -81,19 +95,13 @@ static void i686_setup_gdt(struct i686_cpu *cpu) {
   i686_cpu_set_gdt(cpu->gdt, 5);
 }
 
-static void i686_pagefault() {
-
-  while (1);
-
-}
-
 static void i686_setup_idt(struct i686_cpu *cpu) {
 
   memset(cpu->idt, 0, sizeof(cpu->idt));
 
   cpu->idt[E_PF] = (struct i686_idt_entry) {
-    .offset_low = (unsigned int)i686_pagefault & 0xFFFF, 
-    .offset_high = (unsigned int)i686_pagefault >> 16,
+    .offset_low = (unsigned int)i686_int_handler_14 & 0xFFFF, 
+    .offset_high = (unsigned int)i686_int_handler_14 >> 16,
     .zeroes = 0,
     .type = 0xE, /* 32 bit interrupt */
     .segment = 0x8,
@@ -144,3 +152,24 @@ i686_cpu_alloc(struct kernel *k) {
 
 }
 
+static void i686_int_entry() {
+  while (1);
+}
+
+
+__asm__(
+    "i686_int_handler: \n" 
+    "  pusha    \n"
+    "  push %ds \n"
+    "  push %es \n"
+    "  push %fs \n"
+    "  push %gs \n"
+    "  movw $0x10, %ax  \n"
+    "  movw %ax, %ds    \n"
+    "  movw %ax, %es    \n"
+    "  movw %ax, %fs    \n"
+    "  movw %ax, %gs    \n"
+    "  movl %esp, %eax  \n"
+    "  pushl %eax       \n"
+    "  jmp i686_int_entry \n"
+    "  jmp 0x0");
