@@ -7,17 +7,30 @@
 
 /* Define entry points for the exception handlers */
 
-I686_INT_HANDLER_WERR(0, i686_int_handler)
-I686_INT_HANDLER_WERR(1, i686_int_handler)
-I686_INT_HANDLER_WERR(2, i686_int_handler)
-I686_INT_HANDLER_WERR(3, i686_int_handler)
-I686_INT_HANDLER_WERR(4, i686_int_handler)
-I686_INT_HANDLER_WERR(5, i686_int_handler)
-I686_INT_HANDLER_WERR(6, i686_int_handler)
-I686_INT_HANDLER_WERR(7, i686_int_handler)
+I686_INT_HANDLER_NOERR(0, i686_int_handler)
+I686_INT_HANDLER_NOERR(1, i686_int_handler)
+I686_INT_HANDLER_NOERR(2, i686_int_handler)
+I686_INT_HANDLER_NOERR(3, i686_int_handler)
+I686_INT_HANDLER_NOERR(4, i686_int_handler)
+I686_INT_HANDLER_NOERR(5, i686_int_handler)
+I686_INT_HANDLER_NOERR(6, i686_int_handler)
+I686_INT_HANDLER_NOERR(7, i686_int_handler)
 I686_INT_HANDLER_WERR(8, i686_int_handler)
-I686_INT_HANDLER_WERR(9, i686_int_handler)
+I686_INT_HANDLER_NOERR(9, i686_int_handler)
+I686_INT_HANDLER_WERR(10, i686_int_handler)
+I686_INT_HANDLER_WERR(11, i686_int_handler)
+I686_INT_HANDLER_WERR(12, i686_int_handler)
+I686_INT_HANDLER_WERR(13, i686_int_handler)
 I686_INT_HANDLER_WERR(14, i686_int_handler)
+I686_INT_HANDLER_NOERR(15, i686_int_handler)
+I686_INT_HANDLER_NOERR(16, i686_int_handler)
+I686_INT_HANDLER_WERR(17, i686_int_handler)
+I686_INT_HANDLER_NOERR(18, i686_int_handler)
+I686_INT_HANDLER_NOERR(19, i686_int_handler)
+I686_INT_HANDLER_NOERR(20, i686_int_handler)
+
+
+
 
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 
@@ -95,19 +108,44 @@ static void i686_setup_gdt(struct i686_cpu *cpu) {
   i686_cpu_set_gdt(cpu->gdt, 5);
 }
 
-static void i686_setup_idt(struct i686_cpu *cpu) {
-
-  memset(cpu->idt, 0, sizeof(cpu->idt));
-
-  cpu->idt[E_PF] = (struct i686_idt_entry) {
-    .offset_low = (unsigned int)i686_int_handler_14 & 0xFFFF, 
-    .offset_high = (unsigned int)i686_int_handler_14 >> 16,
+static void 
+i686_set_idt_entry(struct i686_idt_entry *e, void *entry) {
+  *e = (struct i686_idt_entry) {
+    .offset_low = (unsigned int)entry & 0xFFFF,
+    .offset_high = (unsigned int)entry >> 16,
     .zeroes = 0,
-    .type = 0xE, /* 32 bit interrupt */
+    .type = 0xE,
     .segment = 0x8,
     .dpl = 0,
     .present = 1,
   };
+}
+
+static void i686_setup_idt(struct i686_cpu *cpu) {
+
+  memset(cpu->idt, 0, sizeof(cpu->idt));
+
+  i686_set_idt_entry(&cpu->idt[E_DE], i686_int_handler_0);
+  i686_set_idt_entry(&cpu->idt[E_DB], i686_int_handler_1);
+  i686_set_idt_entry(&cpu->idt[E_NMI], i686_int_handler_2);
+  i686_set_idt_entry(&cpu->idt[E_BP], i686_int_handler_3);
+  i686_set_idt_entry(&cpu->idt[E_OF], i686_int_handler_4);
+  i686_set_idt_entry(&cpu->idt[E_BR], i686_int_handler_5);
+  i686_set_idt_entry(&cpu->idt[E_UD], i686_int_handler_6);
+  i686_set_idt_entry(&cpu->idt[E_NM], i686_int_handler_7);
+  i686_set_idt_entry(&cpu->idt[E_DF], i686_int_handler_8);
+  i686_set_idt_entry(&cpu->idt[E_CO], i686_int_handler_9);
+  i686_set_idt_entry(&cpu->idt[E_TS], i686_int_handler_10);
+  i686_set_idt_entry(&cpu->idt[E_NP], i686_int_handler_11);
+  i686_set_idt_entry(&cpu->idt[E_SS], i686_int_handler_12);
+  i686_set_idt_entry(&cpu->idt[E_GP], i686_int_handler_13);
+  i686_set_idt_entry(&cpu->idt[E_PF], i686_int_handler_14);
+  i686_set_idt_entry(&cpu->idt[E_RS], i686_int_handler_15);
+  i686_set_idt_entry(&cpu->idt[E_MF], i686_int_handler_16);
+  i686_set_idt_entry(&cpu->idt[E_AC], i686_int_handler_17);
+  i686_set_idt_entry(&cpu->idt[E_MC], i686_int_handler_18);
+  i686_set_idt_entry(&cpu->idt[E_XM], i686_int_handler_19);
+  i686_set_idt_entry(&cpu->idt[E_VE], i686_int_handler_20);
 
   i686_cpu_set_idt(cpu->idt, 256);
 
@@ -152,7 +190,8 @@ i686_cpu_alloc(struct kernel *k) {
 
 }
 
-static void i686_int_entry() {
+static struct i686_context *
+i686_int_entry(struct i686_context *c) {
   while (1);
 }
 
