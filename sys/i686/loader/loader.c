@@ -41,7 +41,19 @@ void setup_tables() {
   /* Quick and dirty clearing of all pagetables */
   for (i = 0; i < 256; ++i) {
     for (j = 0; j < 1024; ++j) {
-      kpts[i][j] = (struct i686_pte){0};
+      kpts[i][j] = (struct i686_pte){
+        .present = 0,
+        .writable = 0,
+        .user = 0,
+        .write_through = 0,
+        .cache_disable = 0,
+        .accessed = 0,
+        .dirty = 0,
+        .zero = 0,
+        .global = 0,
+        .avail = 0,
+        .phys_addr = 0,
+      };
     }
   }
 

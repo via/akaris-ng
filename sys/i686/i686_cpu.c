@@ -6,6 +6,7 @@
 #include "i686_slab.h"
 
 /* Define entry points for the exception handlers */
+static struct i686_context *i686_int_entry(struct i686_context *) __attribute__((used));
 
 I686_INT_HANDLER_NOERR(0, i686_int_handler)
 I686_INT_HANDLER_NOERR(1, i686_int_handler)
