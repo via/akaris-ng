@@ -29,15 +29,11 @@ I686_INT_HANDLER_NOERR(18, i686_int_handler)
 I686_INT_HANDLER_NOERR(19, i686_int_handler)
 I686_INT_HANDLER_NOERR(20, i686_int_handler)
 
-
-
-
 static void i686_cpu_set_gdt(struct i686_gdt_entry *gdt, int length) {
 
   volatile struct {
     uint16 limit;
-    uint32 base;
-  } __attribute__((packed)) gdtr;
+    uint32 base; } __attribute__((packed)) gdtr;
 
   gdtr.base = (uint32)gdt;
   gdtr.limit = (uint16)(length * sizeof(struct i686_gdt_entry));
@@ -190,9 +186,37 @@ i686_cpu_alloc(struct kernel *k) {
 
 }
 
+static physaddr_t i686_pagefault_getaddr() {
+  physaddr_t a;
+  __asm__("movl %%cr3, %%eax\n"
+          "movl %%eax, %0" : "=r"(a)::"eax");
+  return a;
+}
+
+static void i686_pagefault_decode(struct i686_pagefault_error *e, int code) {
+  *((int *)e) = code;
+}
+ 
+
+static void i686_pagefault(struct i686_context *c) {
+  struct i686_pagefault_error e;
+
+  physaddr_t addr = i686_pagefault_getaddr();
+  i686_pagefault_decode(&e, c->err_code);
+
+  kernel()->debug("Page fault: P: %d W: %d  U: %d  R: %d,  IO: %d\n",
+      e.present, e.write, e.usermode, e.reserved, e.io);
+  kernel()->debug("            Address: %x\n", addr);
+  while (1);
+}
+
 static struct i686_context *
 i686_int_entry(struct i686_context *c) {
+  if (c->int_no == E_PF) {
+    i686_pagefault(c);
+  }
   while (1);
+  return c;
 }
 
 
@@ -212,3 +236,4 @@ __asm__(
     "  pushl %eax       \n"
     "  jmp i686_int_entry \n"
     "  jmp 0x0");
+

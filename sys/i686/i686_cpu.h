@@ -75,6 +75,14 @@ struct i686_context {
   uint32 eip, cs, eflags, useresp, ss;
 } __attribute__((__packed__));
 
+struct i686_pagefault_error {
+  int present : 1;
+  int write : 1;
+  int usermode : 1;
+  int reserved : 1;
+  int io : 1;
+  int _reserved : 27;
+} __attribute__((__packed__));
 
 
 struct i686_cpu *i686_cpu_alloc(struct kernel *);

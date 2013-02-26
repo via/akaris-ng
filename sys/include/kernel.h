@@ -9,5 +9,7 @@ struct kernel {
   void (*debug)(const char *, ...);
 };
 
+struct kernel *kernel();
+
 #endif
 

@@ -29,6 +29,11 @@ static void i686_debug(const char *fmt, ...) {
 
 }
 
+struct kernel *kernel() {
+  return (struct kernel *)&i686_kernel;
+}
+
+
 void
 i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
@@ -40,7 +45,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
     i686_debug("Not booted from multiboot loader!\n");
     while (1);
   }
-
+ 
   i686_debug("mods_addr: %x\nmod_start: %x\n", info->mods_addr,
       0);
 
