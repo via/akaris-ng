@@ -76,12 +76,12 @@ struct i686_context {
 } __attribute__((__packed__));
 
 struct i686_pagefault_error {
-  int present : 1;
-  int write : 1;
-  int usermode : 1;
-  int reserved : 1;
-  int io : 1;
-  int _reserved : 27;
+  unsigned int present : 1;
+  unsigned int write : 1;
+  unsigned int usermode : 1;
+  unsigned int reserved : 1;
+  unsigned int io : 1;
+  unsigned int _reserved : 27;
 } __attribute__((__packed__));
 
 

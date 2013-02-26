@@ -204,14 +204,15 @@ static void i686_pagefault(struct i686_context *c) {
   physaddr_t addr = i686_pagefault_getaddr();
   i686_pagefault_decode(&e, c->err_code);
 
-  kernel()->debug("Page fault: P: %d W: %d  U: %d  R: %d,  IO: %d\n",
+  kernel()->debug("Page fault: P:%d  W:%d  U:%d  R:%d  IO:%d\n",
       e.present, e.write, e.usermode, e.reserved, e.io);
-  kernel()->debug("            Address: %x\n", addr);
+  kernel()->debug("            Target Address: %x,  EIP: %x\n", addr, c->eip);
   while (1);
 }
 
 static struct i686_context *
 i686_int_entry(struct i686_context *c) {
+  kernel()->debug("Interrupt received: %d\n", c->int_no);
   if (c->int_no == E_PF) {
     i686_pagefault(c);
   }
@@ -234,6 +235,6 @@ __asm__(
     "  movw %ax, %gs    \n"
     "  movl %esp, %eax  \n"
     "  pushl %eax       \n"
-    "  jmp i686_int_entry \n"
+    "  call i686_int_entry \n"
     "  jmp 0x0");
 
