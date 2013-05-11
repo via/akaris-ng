@@ -116,7 +116,7 @@ struct i686_tss {
 struct i686_cpu {
   struct cpu c;
   struct feeder_physmem feeder;
-  struct i686_gdt_entry gdt[5] __attribute__((aligned(4)));
+  struct i686_gdt_entry gdt[6] __attribute__((aligned(4)));
   struct i686_idt_entry idt[256] __attribute__((aligned(4)));
   struct i686_tss tss __attribute__((aligned(4)));
 
