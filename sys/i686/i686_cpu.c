@@ -65,8 +65,9 @@ static void i686_cpu_set_idt(struct i686_idt_entry *idt, int length) {
 
 }
 
-static void i686_cpu_set_tr(struct i686_gdt_entry *tr_entry) {
-  __asm__("ltr %0\n" : : "m"(tr_entry));
+static void i686_cpu_set_tr(int index) {
+  __asm__("mov %%eax, %0\n"
+          "ltr %%ax\n" : : "r"(index << 3));
 }
 
 static void i686_setup_gdt(struct i686_cpu *cpu) {
@@ -110,14 +111,14 @@ static void i686_setup_gdt(struct i686_cpu *cpu) {
     .limit_low = (sizeof(struct i686_tss) - 1) & 0xFFFF,
     .base_low = (unsigned int)&cpu->tss & 0xFFFF,
     .base_mid = ((unsigned int)&cpu->tss & 0xFFFFFF) >> 16,
-    .type = 0x9, .system = 1, .dpl = 0, .present = 1,
+    .type = 0x9, .system = 0, .dpl = 0, .present = 1,
     .limit_high = (sizeof(struct i686_tss) - 1) >> 16,
-    .avl = 0, .reserved = 0, .op_size = 1, .granularity = 1,
+    .avl = 0, .reserved = 0, .op_size = 1, .granularity = 0,
     .base_high = (unsigned int)&cpu->tss >> 24,
   };
 
   i686_cpu_set_gdt(cpu->gdt, 6);
-  i686_cpu_set_tr(&cpu->gdt[5]); 
+  i686_cpu_set_tr(5); 
 }
 
 static void 
