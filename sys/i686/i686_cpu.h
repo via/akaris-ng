@@ -119,6 +119,7 @@ struct i686_cpu {
   struct i686_gdt_entry gdt[6] __attribute__((aligned(4)));
   struct i686_idt_entry idt[256] __attribute__((aligned(4)));
   struct i686_tss tss __attribute__((aligned(4)));
+  long stack[1024];
 
   /* CPUID, GDT */
 };
