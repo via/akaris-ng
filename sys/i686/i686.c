@@ -3,6 +3,7 @@
 #include "multiboot.h"
 #include "strfuncs.h"
 #include "bootvideo.h"
+#include "i686_tty.h"
 
 #include "assert.h"
 #include "mutex.h"
@@ -15,6 +16,7 @@
 
 static struct kernel i686_kernel;
 static char debugbuf[256];
+static int use_serial = 1;
 
 
 static void i686_debug(const char *fmt, ...) {
@@ -23,7 +25,10 @@ static void i686_debug(const char *fmt, ...) {
   va_start(ap, fmt);
 
   k_snprintf_vaarg(debugbuf, 256, fmt, ap);
-  bootvideo_puts(debugbuf);
+  if (use_serial)
+    i686_tty_puts(0, debugbuf);
+  else              
+    bootvideo_puts(debugbuf);
   
   va_end(ap);
 
@@ -38,6 +43,9 @@ void
 i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
   bootvideo_cls();
+
+  if (use_serial)
+    i686_tty_init(0, 9600);
 
   i686_kernel.debug = i686_debug;
 
