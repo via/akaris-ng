@@ -5,6 +5,7 @@ LD=${ARCH}-elf-ld
 AS=${ARCH}-elf-as
 CFLAGS=-ffreestanding -nostdlib -fno-builtin -fstack-protector
 SRCS+= ${SRCROOT}/i686/bootvideo.c \
+			 ${SRCROOT}/i686/i686_tty.c \
 			 ${SRCROOT}/i686/i686.c \
 			 ${SRCROOT}/i686/i686_cpu.c \
 			 ${SRCROOT}/i686/i686_virtmem.c \
