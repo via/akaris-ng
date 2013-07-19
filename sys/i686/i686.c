@@ -16,7 +16,7 @@
 
 static struct kernel i686_kernel;
 static char debugbuf[256];
-static int use_serial = 1;
+static int use_serial = 0;
 
 
 static void i686_debug(const char *fmt, ...) {
@@ -34,6 +34,12 @@ static void i686_debug(const char *fmt, ...) {
 
 }
 
+static void parse_cmdline(long cmdline) {
+  const char *c = (const char *)cmdline;
+  if (strstr(c, "use_serial") != NULL)
+    use_serial = 1;
+}
+
 struct kernel *kernel() {
   return (struct kernel *)&i686_kernel;
 }
@@ -43,6 +49,8 @@ void
 i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
   bootvideo_cls();
+
+  parse_cmdline(info->cmdline);
 
   if (use_serial)
     i686_tty_init(0, 9600);

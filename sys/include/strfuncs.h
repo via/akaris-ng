@@ -12,6 +12,8 @@ size_t strlen(const char *str);
 size_t strcpy(char *dst, const char *src);
 size_t strlcat(char *dst, const char *src, size_t siz);
 size_t strlcpy(char *dst, const char *src, size_t siz);
+const char * strstr(const char *, const char *);
+int strncmp(const char *, const char *, size_t);
 
 void itoa(char *buf, int, int);
 

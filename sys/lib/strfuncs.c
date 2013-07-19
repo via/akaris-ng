@@ -46,6 +46,41 @@ size_t strcpy(char *dst, const char *src) {
   return (s - src);
 }
 
+int 
+strncmp(const char *s1, const char *s2, size_t n) {
+  while (n-- > 0) {
+    if (*s1 == NULL) {
+      if (*s2 == NULL)
+        return 0; /*Both finished, equal */
+      return -1; /*s1 finished first, less */
+    }
+    if (*s2 == NULL)
+      return 1; /*S2 finished first */
+
+    if (*s1 > *s2)
+      return 1;
+    if (*s1 < *s2)
+      return -1;
+    s1++;
+    s2++;
+  }
+  return 0; /* N ran out */
+}
+
+const char *
+strstr(const char *haystack, const char *needle) {
+  char c;
+  while ( (c = *haystack) ) {
+    if (c == needle[0]) {
+      if (strncmp(haystack, needle, strlen(needle)) == 0)
+        return haystack;
+      /* compare */
+    }
+    haystack++;
+  }
+  return NULL;
+}
+
 
 void itoa (char *buf, int base, int d)
 {
