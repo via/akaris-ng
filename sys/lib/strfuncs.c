@@ -49,12 +49,12 @@ size_t strcpy(char *dst, const char *src) {
 int 
 strncmp(const char *s1, const char *s2, size_t n) {
   while (n-- > 0) {
-    if (*s1 == NULL) {
-      if (*s2 == NULL)
+    if (*s1 == '\0') {
+      if (*s2 == '\0')
         return 0; /*Both finished, equal */
       return -1; /*s1 finished first, less */
     }
-    if (*s2 == NULL)
+    if (*s2 == '\0')
       return 1; /*S2 finished first */
 
     if (*s1 > *s2)

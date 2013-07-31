@@ -29,7 +29,7 @@ test_kernel_vmem_create(struct virtmem **_v, struct cpu *c, int n_pages) {
 
 
 static virtmem_error_t 
-test_kernel_alloc(struct virtmem *_v, virtaddr_t *a, unsigned int n_pages) {
+test_kernel_alloc(struct virtmem *_v, virtaddr_t *a VAR_UNUSED, unsigned int n_pages) {
 
   int i;
   struct test_virtmem *v = (struct test_virtmem *)_v;
@@ -48,7 +48,7 @@ test_kernel_alloc(struct virtmem *_v, virtaddr_t *a, unsigned int n_pages) {
 
 
 static virtmem_error_t
-test_kernel_free(struct virtmem *v, virtaddr_t addr) {
+test_kernel_free(struct virtmem *v VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
 
   return VIRTMEM_SUCCESS;  
 }

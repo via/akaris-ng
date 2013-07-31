@@ -8,8 +8,12 @@ typedef signed short     int16;
 typedef unsigned char    uint8;
 typedef signed char       int8;
  
+#ifndef HOSTED
 typedef signed long offset_t;
 typedef unsigned long size_t;
+#else
+#include <stddef.h>
+#endif
 
 #ifndef NULL
 #define NULL 0

@@ -33,7 +33,7 @@ test_physmem_alloc(struct kernel *kernel, int n_pages) {
 }
 
 
-static uint32 test_physmem_page_size(const struct physmem *p) {
+static uint32 test_physmem_page_size(const struct physmem *p VAR_UNUSED) {
   return 4096;
 }
 

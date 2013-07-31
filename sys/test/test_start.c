@@ -15,7 +15,7 @@ static const int dtor_marker = 0x22;
 START_TEST (check_physmem_alloc) {
 
   struct kernel test_kernel;
-  const int n_pages = 24;
+  const unsigned int n_pages = 24;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
 
@@ -28,8 +28,8 @@ START_TEST (check_physmem_alloc) {
 START_TEST (check_physmem_page_alloc) { 
   
   struct kernel test_kernel;
-  const int n_pages = 24;
-  int count;
+  const unsigned int n_pages = 24;
+  unsigned int count;
   physmem_error_t err;
   physaddr_t page;
 
@@ -50,8 +50,8 @@ START_TEST (check_physmem_page_alloc) {
 START_TEST (check_physmem_page_free) {
 
   struct kernel test_kernel;
-  const int n_pages = 24;
-  int count;
+  const unsigned int n_pages = 24;
+  unsigned int count;
   physmem_error_t err;
   physaddr_t page;
 
@@ -73,7 +73,7 @@ START_TEST (check_physmem_page_free) {
 START_TEST (check_physmem_stats) {
 
   struct kernel test_kernel;
-  const int n_pages = 24;
+  const unsigned int n_pages = 24;
   struct physmem_stats stats;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
@@ -86,9 +86,9 @@ START_TEST (check_physmem_stats) {
 START_TEST (check_physmem_feeder_create) {
 
   struct kernel test_kernel;
-  const int n_pages = 24;
-  const int kept_pages = 5;
-  const int min_source_pages = 7;
+  const unsigned int n_pages = 24;
+  const unsigned int kept_pages = 5;
+  const unsigned int min_source_pages = 7;
   struct feeder_physmem f;
 
   test_kernel.phys = test_physmem_alloc(&test_kernel, n_pages);
@@ -110,9 +110,9 @@ START_TEST (check_physmem_feeder_create) {
 START_TEST (check_physmem_feeder_feeds_correctly) {
 
   struct kernel test_kernel;
-  const int n_pages = 24;
-  const int kept_pages = 5;
-  const int min_source_pages = 7;
+  const unsigned int n_pages = 24;
+  const unsigned int kept_pages = 5;
+  const unsigned int min_source_pages = 7;
   int count;
   struct feeder_physmem f;
   physmem_error_t err;
@@ -136,7 +136,7 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
   for (count = kept_pages - 1; count >= 0; --count) {
     err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
     fail_unless(err == PHYSMEM_SUCCESS);
-    fail_unless(f.p.free_pages == count);
+    fail_unless(f.p.free_pages == (unsigned)count);
     fail_unless(f.source->free_pages == min_source_pages);
   }
   /*After that point, all allocs should directly affect the source, while the
@@ -144,7 +144,7 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
   for (count = min_source_pages - 1; count >= 0; --count) {
     err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
     fail_unless(err == PHYSMEM_SUCCESS);
-    fail_unless(f.source->free_pages == count);
+    fail_unless(f.source->free_pages == (unsigned)count);
     fail_unless(f.p.free_pages == 0);
   }
   /* Now we're out of memory */
@@ -157,10 +157,10 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
 START_TEST (check_physmem_feeder_frees_correctly) {
   
   struct kernel test_kernel;
-  const int n_pages = 24;
-  const int kept_pages = 5;
-  const int min_source_pages = 5;
-  int count;
+  const unsigned int n_pages = 24;
+  const unsigned int kept_pages = 5;
+  const unsigned int min_source_pages = 5;
+  unsigned int count;
   struct feeder_physmem f;
   physaddr_t addr;
 
@@ -208,7 +208,7 @@ void check_kmem_cache_dtor(void *_obj) {
  */
 START_TEST (check_kmem_cache_init) {
 
-  const int slab_size = 32;
+  const unsigned int slab_size = 32;
   kmem_error_t err;
 
   struct kmem_cache *k = test_kmem_cache_alloc();
@@ -242,19 +242,19 @@ START_TEST (check_kmem_cache_init) {
 
 } END_TEST
 
-static virtmem_error_t fake_alloc(struct virtmem *m, virtaddr_t *a, 
-    unsigned int pages) {
+static virtmem_error_t fake_alloc(struct virtmem *m VAR_UNUSED, 
+    virtaddr_t *a VAR_UNUSED, unsigned int pages) {
   a = malloc(pages * 4096);
   return VIRTMEM_SUCCESS;
 }
 
-static virtmem_error_t  fake_alloc_null(struct virtmem *m, virtaddr_t *a, 
-    unsigned int pages) {
-  a = NULL;
+static virtmem_error_t  fake_alloc_null(struct virtmem *m VAR_UNUSED, 
+    virtaddr_t *a, unsigned int pages VAR_UNUSED) {
+  *a = NULL;
   return VIRTMEM_SUCCESS;
 }
 
-static uint32 fake_page_size(const struct physmem *p) {
+static uint32 fake_page_size(const struct physmem *p VAR_UNUSED) {
   return 4096;
 }
 
