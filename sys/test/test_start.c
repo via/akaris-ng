@@ -191,6 +191,7 @@ START_TEST (check_physmem_feeder_frees_correctly) {
 void check_kmem_cache_ctor(void *_obj) {
   int *obj = (int *)_obj;
   *obj = ctor_marker;
+  
 }
 
 void check_kmem_cache_dtor(void *_obj) {
@@ -243,19 +244,31 @@ START_TEST (check_kmem_cache_init) {
 } END_TEST
 
 static virtmem_error_t fake_alloc(struct virtmem *m VAR_UNUSED, 
-    virtaddr_t *a VAR_UNUSED, unsigned int pages) {
-  a = malloc(pages * 4096);
+    virtaddr_t *a, unsigned int pages) {
+  *a = malloc(pages * 4096);
+  if (*a == NULL)
+    return VIRTMEM_OOM;
   return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t  fake_alloc_null(struct virtmem *m VAR_UNUSED, 
     virtaddr_t *a, unsigned int pages VAR_UNUSED) {
   *a = NULL;
-  return VIRTMEM_SUCCESS;
+  return VIRTMEM_OOM;
 }
 
 static uint32 fake_page_size(const struct physmem *p VAR_UNUSED) {
   return 4096;
+}
+
+static physmem_error_t fake_pmem_page_alloc(struct physmem *p VAR_UNUSED, 
+    uint8 node VAR_UNUSED, physaddr_t *addr VAR_UNUSED) {
+  return PHYSMEM_SUCCESS;
+}
+
+static virtmem_error_t fake_vmem_map_virt_to_phys(struct virtmem *v VAR_UNUSED,
+    physaddr_t p VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
+  return VIRTMEM_SUCCESS;
 }
 
 START_TEST (check_kmem_cache_alloc_ctor_dtor) {
@@ -263,11 +276,13 @@ START_TEST (check_kmem_cache_alloc_ctor_dtor) {
   struct virtmem kvirt = {
     .v = {
       .kernel_alloc = fake_alloc,
+      .kernel_map_virt_to_phys = fake_vmem_map_virt_to_phys,
     },
   };
   struct physmem p = {
     .v = {
       .page_size = fake_page_size,
+      .page_alloc = fake_pmem_page_alloc,
     },
   };
 
@@ -300,11 +315,13 @@ START_TEST (check_kmem_cache_alloc) {
   struct virtmem kvirt = {
     .v = {
       .kernel_alloc = fake_alloc,
+      .kernel_map_virt_to_phys = fake_vmem_map_virt_to_phys,
     },
   };
   struct physmem p = {
     .v = {
       .page_size = fake_page_size,
+      .page_alloc = fake_pmem_page_alloc,
     },
   };
 
@@ -333,6 +350,7 @@ START_TEST (check_kmem_cache_alloc) {
   fail_if(ptr <= (void *)slab);
   fail_if(ptr >= (void *)slab + 4096);
 
+  /* Test what happens if allocations fail */
   kvirt.v.kernel_alloc = fake_alloc_null;
   while ((ptr = kmem_cache_alloc(k)) != NULL) {
     fail_if(ptr <= (void *)slab);

@@ -88,7 +88,6 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
   }
 
 
-
   obj = *s->first_free;
   assert(obj != NULL);
   s->first_free++;
