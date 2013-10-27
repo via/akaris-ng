@@ -1,3 +1,4 @@
+#include "assert.h"
 #include "kernel.h"
 #include "physical_memory.h"
 #include "strfuncs.h"
@@ -63,6 +64,14 @@ static void i686_cpu_set_idt(struct i686_idt_entry *idt, int length) {
 
   __asm__("lidt %0\n" : : "m"(idtr));
 
+}
+
+static void i686_cpu_set_tss_stack(struct i686_tss *tss, virtaddr_t stack, size_t size) {
+  assert(tss);
+  assert((long)stack % sizeof(long) == 0);
+  assert(size % sizeof(long) == 0);
+  tss->ss0 = 0x10; /*Data segment, supervisor level */
+  tss->esp0 = (long)stack + size - sizeof(long);
 }
 
 static void i686_cpu_set_tr(int index) {
@@ -173,7 +182,8 @@ static void i686_cpu_init(struct cpu *_cpu) {
 
   i686_setup_gdt(cpu);
   i686_setup_idt(cpu);
-
+  i686_cpu_set_tss_stack(&cpu->tss, (virtaddr_t)cpu->stack, 
+      sizeof(cpu->stack));
 
 }
 
