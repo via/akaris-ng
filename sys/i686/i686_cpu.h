@@ -142,7 +142,7 @@ struct i686_pagefault_error {
 } __attribute__((__packed__));
 
 
-struct i686_cpu *i686_cpu_alloc(struct kernel *);
+struct i686_cpu *i686_cpu_alloc();
 
 #define I686_INT_HANDLER_WERR(INTNUM, DEST) \
     extern void i686_int_handler_ ## INTNUM (); \

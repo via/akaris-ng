@@ -29,7 +29,7 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
   struct i686_virtmem *v = (struct i686_virtmem *)_v;
   virtaddr_t oldlimit = v->identitymap_limit;
 
-  _v->cpu->k->debug("Called with %x, old end is %x\n", newend, v->identitymap_limit);
+  kernel()->debug("Called with %x, old end is %x\n", newend, v->identitymap_limit);
 
   long old_limit_page = ((long)v->identitymap_limit + (pg_size - 1)) / pg_size;
   long new_limit_page = ((long)newend + (pg_size - 1)) / pg_size;
@@ -38,7 +38,7 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
     return oldlimit;
 
   long curpage;
-  _v->cpu->k->debug("Setting limit: %x -> %x\n", old_limit_page, new_limit_page);
+  kernel()->debug("Setting limit: %x -> %x\n", old_limit_page, new_limit_page);
 
   for (curpage = old_limit_page + 1; curpage <= new_limit_page; ++curpage) {
     long phys_page = curpage - ((physaddr_t)&highstart / pg_size);
@@ -146,7 +146,7 @@ i686_kernel_virt_to_phys(struct virtmem *_v,
     return VIRTMEM_NOTPRESENT;
   paddr = pte->phys_addr << 12; /*Convert to address */
   if (p)
-    *p = physmem_phys_to_page(_v->cpu->k->phys, paddr);
+    *p = physmem_phys_to_page(kernel()->phys, paddr);
 
   return VIRTMEM_SUCCESS;
 }

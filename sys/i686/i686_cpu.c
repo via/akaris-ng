@@ -177,7 +177,7 @@ static void i686_cpu_init(struct cpu *_cpu) {
 
   struct i686_cpu *cpu = (struct i686_cpu *)_cpu;
   
-  feeder_physmem_create(&cpu->feeder, _cpu->k->phys, 1024, 1024);
+  feeder_physmem_create(&cpu->feeder, kernel()->phys, 1024, 1024);
   cpu->c.localmem = (struct physmem *)&cpu->feeder;
 
   i686_setup_gdt(cpu);
@@ -205,9 +205,8 @@ static struct i686_cpu i686cpu = {
 };
 
 struct i686_cpu *
-i686_cpu_alloc(struct kernel *k) {
+i686_cpu_alloc(void) {
   
-  i686cpu.c.k = k;
   i686cpu.c.allocator = &i686_kmem_allocator;
   return &i686cpu;
 

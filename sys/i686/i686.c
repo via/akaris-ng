@@ -66,7 +66,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
       0);
 
   i686_kernel.mutex = &i686_mutex;
-  i686_kernel.bsp = (struct cpu *)i686_cpu_alloc(&i686_kernel);
+  i686_kernel.bsp = (struct cpu *)i686_cpu_alloc();
   i686_kernel.bsp->kvirt = i686_virtmem_init(&i686_kernel);
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
