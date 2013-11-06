@@ -212,6 +212,11 @@ i686_cpu_alloc(void) {
 
 }
 
+struct cpu *
+cpu() {
+  return kernel()->bsp;
+}
+
 static physaddr_t i686_pagefault_getaddr() {
   physaddr_t a;
   __asm__("movl %%cr3, %%eax\n"
