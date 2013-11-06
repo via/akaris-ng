@@ -6,9 +6,10 @@ struct address_space;
 
 typedef enum {
   AS_SUCCESS,
-  AS_NOTFOUND,
-  AS_INVALID,
-  AS_OOM,
+  AS_NOTFOUND, /* Memory region does not exist */
+  AS_INVALID, /* Invalid assignment of parameters */
+  AS_OOM, /* Unable to allocate memory for data structures */
+  AS_USED, /* Desired location conflicts with existing region */
 } address_space_err_t;
 
 struct memory_region_vfuncs {
