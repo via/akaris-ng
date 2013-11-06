@@ -1,8 +1,9 @@
 SRCROOT=../..
 ARCH=test
 DEFS=-DHOSTED
-SRCS+= ${SRCROOT}/test/test_slab.c \
-			 ${SRCROOT}/test/test_start.c \
+
+SRCS+= ${SRCROOT}/test/test.c \
+       ${SRCROOT}/test/test_slab.c \
 			 ${SRCROOT}/test/test_vmem.c \
 			 ${SRCROOT}/test/test_physmem.c 
 CFLAGS!=pkg-config --cflags check
