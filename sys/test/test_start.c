@@ -12,8 +12,35 @@
 static const int ctor_marker = 0x11;
 static const int dtor_marker = 0x22;
 
-struct kernel test_kernel;
-struct cpu test_cpu = {
+static virtmem_error_t fake_alloc(struct virtmem *m VAR_UNUSED, 
+    virtaddr_t *a, unsigned int pages) {
+  *a = malloc(pages * 4096);
+  if (*a == NULL)
+    return VIRTMEM_OOM;
+  return VIRTMEM_SUCCESS;
+}
+
+static virtmem_error_t  fake_alloc_null(struct virtmem *m VAR_UNUSED, 
+    virtaddr_t *a, unsigned int pages VAR_UNUSED) {
+  *a = NULL;
+  return VIRTMEM_OOM;
+}
+
+static virtmem_error_t fake_vmem_map_virt_to_phys(struct virtmem *v VAR_UNUSED,
+    physaddr_t p VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
+  return VIRTMEM_SUCCESS;
+}
+
+
+static struct kernel test_kernel;
+
+static struct virtmem test_kvirt = {
+  .v = {
+    .kernel_alloc = fake_alloc,
+    .kernel_map_virt_to_phys = fake_vmem_map_virt_to_phys,
+  },
+};
+static struct cpu test_cpu = {
     .allocator = &test_allocator,
 };
 
@@ -25,12 +52,12 @@ struct kernel *kernel() {
   return &test_kernel;
 }
 
+static const unsigned int n_pages = 24;
+void check_physmem_setup() {
+  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
+}
 
 START_TEST (check_physmem_alloc) {
-
-  const unsigned int n_pages = 24;
-
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
 
   fail_unless(kernel()->phys->parent == kernel());
   fail_unless(kernel()->phys->total_pages == n_pages);
@@ -40,12 +67,9 @@ START_TEST (check_physmem_alloc) {
 
 START_TEST (check_physmem_page_alloc) { 
   
-  const unsigned int n_pages = 24;
   unsigned int count;
   physmem_error_t err;
   physaddr_t page;
-
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
 
   for (count = 0; count < n_pages; ++count) {
     err = physmem_page_alloc(kernel()->phys, 0, &page);
@@ -61,12 +85,9 @@ START_TEST (check_physmem_page_alloc) {
 
 START_TEST (check_physmem_page_free) {
 
-  const unsigned int n_pages = 24;
   unsigned int count;
   physmem_error_t err;
   physaddr_t page;
-
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
 
   for (count = 0; count < n_pages; ++count) {
     err = physmem_page_alloc(kernel()->phys, 0, &page);
@@ -83,10 +104,8 @@ START_TEST (check_physmem_page_free) {
 
 START_TEST (check_physmem_stats) {
 
-  const unsigned int n_pages = 24;
   struct physmem_stats stats;
 
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
   stats = physmem_stats_get(kernel()->phys);
   fail_unless(stats.kernel_pages == n_pages);
   fail_unless(stats.free_pages == n_pages);
@@ -95,12 +114,10 @@ START_TEST (check_physmem_stats) {
 
 START_TEST (check_physmem_feeder_create) {
 
-  const unsigned int n_pages = 24;
   const unsigned int kept_pages = 5;
   const unsigned int min_source_pages = 7;
   struct feeder_physmem f;
 
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
   feeder_physmem_create(&f, kernel()->phys, kept_pages, min_source_pages);
 
   fail_unless(f.source == kernel()->phys);
@@ -117,7 +134,6 @@ START_TEST (check_physmem_feeder_create) {
 
 
 START_TEST (check_physmem_feeder_feeds_correctly) {
-  const unsigned int n_pages = 24;
   const unsigned int kept_pages = 5;
   const unsigned int min_source_pages = 7;
   int count;
@@ -125,7 +141,6 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
   physmem_error_t err;
   physaddr_t addr;
 
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
   feeder_physmem_create(&f, kernel()->phys, kept_pages, min_source_pages);
 
   err = physmem_page_alloc((struct physmem *)&f, 0, &addr);
@@ -163,14 +178,12 @@ START_TEST (check_physmem_feeder_feeds_correctly) {
 
 START_TEST (check_physmem_feeder_frees_correctly) {
   
-  const unsigned int n_pages = 24;
   const unsigned int kept_pages = 5;
   const unsigned int min_source_pages = 5;
   unsigned int count;
   struct feeder_physmem f;
   physaddr_t addr;
 
-  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
   feeder_physmem_create(&f, kernel()->phys, kept_pages, min_source_pages);
 
   for (count = n_pages; count > 0; --count)
@@ -194,13 +207,13 @@ START_TEST (check_physmem_feeder_frees_correctly) {
 
 } END_TEST
 
-void check_kmem_cache_ctor(void *_obj) {
+static void check_kmem_cache_ctor(void *_obj) {
   int *obj = (int *)_obj;
   *obj = ctor_marker;
   
 }
 
-void check_kmem_cache_dtor(void *_obj) {
+static void check_kmem_cache_dtor(void *_obj) {
   /* This is a double pointer so that the obj can be set to a int* and the
    * marker can be set to an external int for verification
    */
@@ -209,6 +222,13 @@ void check_kmem_cache_dtor(void *_obj) {
   **obj = dtor_marker;
 }
 
+
+static void check_kmem_cache_setup() {
+  kernel()->phys = test_physmem_alloc(kernel(), n_pages);
+  cpu()->kvirt = &test_kvirt;
+  cpu()->localmem = kernel()->phys;
+  cpu()->allocator = &test_allocator;
+}
 
 /* I know this is huge, need to learn how to use fixtures to more easily split
  * apart the source
@@ -245,61 +265,13 @@ START_TEST (check_kmem_cache_init) {
 
 } END_TEST
 
-static virtmem_error_t fake_alloc(struct virtmem *m VAR_UNUSED, 
-    virtaddr_t *a, unsigned int pages) {
-  *a = malloc(pages * 4096);
-  if (*a == NULL)
-    return VIRTMEM_OOM;
-  return VIRTMEM_SUCCESS;
-}
-
-static virtmem_error_t  fake_alloc_null(struct virtmem *m VAR_UNUSED, 
-    virtaddr_t *a, unsigned int pages VAR_UNUSED) {
-  *a = NULL;
-  return VIRTMEM_OOM;
-}
-
-static uint32 fake_page_size(const struct physmem *p VAR_UNUSED) {
-  return 4096;
-}
-
-static physmem_error_t fake_pmem_page_alloc(struct physmem *p VAR_UNUSED, 
-    uint8 node VAR_UNUSED, physaddr_t *addr VAR_UNUSED) {
-  return PHYSMEM_SUCCESS;
-}
-
-static virtmem_error_t fake_vmem_map_virt_to_phys(struct virtmem *v VAR_UNUSED,
-    physaddr_t p VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
-  return VIRTMEM_SUCCESS;
-}
-
 START_TEST (check_kmem_cache_alloc_ctor_dtor) {
-
-  struct virtmem kvirt = {
-    .v = {
-      .kernel_alloc = fake_alloc,
-      .kernel_map_virt_to_phys = fake_vmem_map_virt_to_phys,
-    },
-  };
-  struct physmem p = {
-    .v = {
-      .page_size = fake_page_size,
-      .page_alloc = fake_pmem_page_alloc,
-    },
-  };
-
-
-  struct cpu c = {
-    .allocator = &test_allocator,
-    .kvirt = &kvirt,
-    .localmem = &p,
-  };
 
   int *ptr;
   int dtor_tester;
   
   struct kmem_cache *k = test_allocator.av.kmem_cache_alloc();
-  test_allocator.av.kmem_cache_init(k, &c, "test-slab-32", 32,
+  test_allocator.av.kmem_cache_init(k, cpu(), "test-slab-32", 32,
       check_kmem_cache_ctor, check_kmem_cache_dtor);
 
   ptr = (int *)kmem_cache_alloc(k);
@@ -314,29 +286,10 @@ START_TEST (check_kmem_cache_alloc_ctor_dtor) {
 } END_TEST
 
 START_TEST (check_kmem_cache_alloc) {
-  struct virtmem kvirt = {
-    .v = {
-      .kernel_alloc = fake_alloc,
-      .kernel_map_virt_to_phys = fake_vmem_map_virt_to_phys,
-    },
-  };
-  struct physmem p = {
-    .v = {
-      .page_size = fake_page_size,
-      .page_alloc = fake_pmem_page_alloc,
-    },
-  };
-
-
-  struct cpu c = {
-    .allocator = &test_allocator,
-    .kvirt = &kvirt,
-    .localmem = &p,
-  };
 
   void *ptr;
   struct kmem_cache *k = test_allocator.av.kmem_cache_alloc();
-  test_allocator.av.kmem_cache_init(k, &c, "test-slab-32", 32,
+  test_allocator.av.kmem_cache_init(k, cpu(), "test-slab-32", 32,
       NULL, NULL);
 
   ptr = kmem_cache_alloc(k);
@@ -353,7 +306,7 @@ START_TEST (check_kmem_cache_alloc) {
   fail_if(ptr >= (void *)slab + 4096);
 
   /* Test what happens if allocations fail */
-  kvirt.v.kernel_alloc = fake_alloc_null;
+  cpu()->kvirt->v.kernel_alloc = fake_alloc_null;
   while ((ptr = kmem_cache_alloc(k)) != NULL) {
     fail_if(ptr <= (void *)slab);
     fail_if(ptr >= (void *)slab + 4096);
@@ -367,6 +320,7 @@ Suite *
 main_suite() {
   Suite *s = suite_create("Subsystems");
   TCase *tc_physmem = tcase_create("Physmem");
+  tcase_add_checked_fixture(tc_physmem, check_physmem_setup, NULL);
   tcase_add_test(tc_physmem, check_physmem_alloc);
   tcase_add_test(tc_physmem, check_physmem_page_alloc);
   tcase_add_test(tc_physmem, check_physmem_page_free);
@@ -377,6 +331,7 @@ main_suite() {
   suite_add_tcase(s, tc_physmem);
 
   TCase *tc_slab = tcase_create("SLAB Allocator");
+  tcase_add_checked_fixture(tc_slab, check_kmem_cache_setup, NULL);
   tcase_add_test(tc_slab, check_kmem_cache_init);
   tcase_add_test(tc_slab, check_kmem_cache_alloc_ctor_dtor);
   tcase_add_test(tc_slab, check_kmem_cache_alloc);
