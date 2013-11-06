@@ -7,6 +7,9 @@
 #define MAX_SLAB_NAME_LEN 32
 #define MIN_CACHE_SIZE 1
 
+typedef void (*kmem_cache_ctor)(void *o);
+typedef void (*kmem_cache_dtor)(void *o);
+
 typedef enum {
   KMEM_SUCCESS,
   KMEM_ERR_USED, /* Triggered if trying to create cache with duplicate name */
@@ -42,8 +45,8 @@ struct kmem_cache {
   SLIST_HEAD(, kmem_slab) slabs_partial;
   SLIST_HEAD(, kmem_slab) slabs_empty;
 
-  void (*ctor)(void *object);
-  void (*dtor)(void *object);
+  kmem_cache_ctor ctor;
+  kmem_cache_dtor dtor;
   
 
 };
@@ -52,8 +55,7 @@ struct kmem_allocator_vfuncs {
   void (*kmem_init)();
   struct kmem_cache *(*kmem_cache_alloc)();
   kmem_error_t (*kmem_cache_init)(struct kmem_cache *, struct cpu *cpu, 
-      const char *name, size_t size, void (*ctor)(void *), 
-      void (*dtor)(void *));
+      const char *name, size_t size, kmem_cache_ctor, kmem_cache_dtor );
 };
 
 struct kmem_allocator {
@@ -66,8 +68,7 @@ void *common_kmem_cache_alloc(struct kmem_cache *);
 void common_kmem_cache_free(struct kmem_cache *, void *);
 void common_kmem_cache_reap(struct kmem_cache *);
 kmem_error_t common_kmem_cache_init(struct kmem_cache *k, struct cpu *c, 
-    const char *name, size_t size, void (*ctor)(void *), 
-    void (*dtor)(void *));
+    const char *name, size_t size, kmem_cache_ctor, kmem_cache_dtor);
 
 
 static inline void *kmem_cache_alloc(struct kmem_cache *k) {
@@ -93,7 +94,7 @@ kmem_alloc(struct kmem_allocator *k) {
 
 static inline kmem_error_t kmem_cache_init( struct kmem_allocator *k, 
     struct kmem_cache *c, struct cpu *cpu, const char *name, size_t size, 
-    void (*ctor)(void *), void (*dtor)(void *)) {
+    kmem_cache_ctor ctor, kmem_cache_dtor dtor) {
   return k->av.kmem_cache_init(c, cpu, name, size, ctor, dtor);
 }
 

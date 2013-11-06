@@ -146,8 +146,8 @@ void common_kmem_cache_reap(struct kmem_cache *cache VAR_UNUSED) {
 }
 
 kmem_error_t common_kmem_cache_init(struct kmem_cache *k, struct cpu *c, 
-    const char *name, size_t size, void (*ctor)(void *), 
-    void (*dtor)(void *)) {
+    const char *name, size_t size, kmem_cache_ctor ctor, 
+    kmem_cache_dtor dtor) {
 
   k->ctor = ctor;
   k->dtor = dtor;
