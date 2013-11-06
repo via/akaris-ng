@@ -16,7 +16,7 @@ static int
 memory_region_compare_to_location(struct memory_region *mr, virtaddr_t addr) {
   if (addr < mr->start)
     return -1;
-  if (addr > mr->start + mr->length)
+  if (addr >= mr->start + mr->length)
     return 1;
   return 0;
 }
@@ -32,7 +32,7 @@ memory_region_compare_to_region(struct memory_region *mr,
     struct memory_region *other) {
   if (other->start + other->length < mr->start)
     return -1;
-  if (other->start > mr->start + mr->length)
+  if (other->start >= mr->start + mr->length)
     return 1;
   return 0;
 }
@@ -163,3 +163,31 @@ address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor) {
       "memory_region", sizeof(struct memory_region), mr_ctor, NULL);
 
 }
+
+
+#ifdef HOSTED
+#include <check.h>
+
+START_TEST (check_memory_region_compare_to_location) {
+  struct memory_region mr;
+  virtaddr_t loc;
+
+  mr.start = (virtaddr_t)0x100000;
+  mr.length = 8192;
+
+  loc = (virtaddr_t)0x80000;
+  fail_unless(memory_region_compare_to_location(&mr, loc) < 0);
+
+  loc = (virtaddr_t)0x100100;
+  fail_unless(memory_region_compare_to_location(&mr, loc) == 0);
+
+  loc = (virtaddr_t)0x102000;
+  fail_unless(memory_region_compare_to_location(&mr, loc) > 0);
+} END_TEST
+
+void check_address_space_add_static_tests(TCase *t) {
+   tcase_add_test(t, check_memory_region_compare_to_location);
+}
+
+#endif
+

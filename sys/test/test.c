@@ -3,6 +3,7 @@
 #include "test_physmem.h"
 #include "virtual_memory.h"
 #include "slab.h"
+#include "address_space.h"
 #include "test_slab.h"
 #include "queue.h"
 
@@ -39,6 +40,10 @@ main_suite() {
   TCase *tc_slab = tcase_create("SLAB Allocator");
   check_initialize_slab_tests(tc_slab);
   suite_add_tcase(s, tc_slab);
+
+  TCase *tc_as = tcase_create("AddressSpace");
+  check_address_space_add_static_tests(tc_as);
+  suite_add_tcase(s, tc_as);
 
   return s;
 }

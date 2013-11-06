@@ -80,5 +80,12 @@ address_space_err_t address_space_free(struct address_space *);
 address_space_err_t address_space_alloc(struct address_space **);
 void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor);
 
+#ifdef HOSTED
+/* Embedded test cases for static functions */
+#include <check.h>
+void check_address_space_add_static_tests(TCase *);
+#endif
+
+
 #endif
 
