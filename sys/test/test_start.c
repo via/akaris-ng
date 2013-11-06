@@ -12,6 +12,17 @@
 static const int ctor_marker = 0x11;
 static const int dtor_marker = 0x22;
 
+struct kernel test_kernel;
+struct cpu test_cpu;
+
+struct cpu *cpu() {
+  return &test_cpu;
+}
+
+struct kernel *kernel() {
+  return &test_kernel;
+}
+
 START_TEST (check_physmem_alloc) {
 
   struct kernel test_kernel;
