@@ -69,9 +69,11 @@ test_kernel_map_virt_to_phys(struct virtmem *v, struct physmem_page **p,
   return VIRTMEM_SUCCESS;
 }
 
+/* All of this is currently unused until its done being implement */
 struct virtmem_vfuncs test_virtmem_vfuncs = {
   .kernel_alloc = test_kernel_alloc,
   .kernel_free = test_kernel_free,
   .kernel_virt_to_phys = test_kernel_virt_to_phys,
   .kernel_map_virt_to_phys = test_kernel_map_virt_to_phys,
 };
+

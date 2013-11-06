@@ -13,5 +13,7 @@ struct test_physmem {
   struct physmem_page *pagelist;
 };
 
+void check_initialize_physmem_tests(TCase *);
+
 
 #endif
