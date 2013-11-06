@@ -28,6 +28,8 @@ struct cpu {
 
 };
 
+/* Fetch currently executing cpu */
+struct cpu *cpu();
 
 
 
