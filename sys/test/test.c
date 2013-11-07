@@ -41,8 +41,8 @@ main_suite() {
   check_initialize_slab_tests(tc_slab);
   suite_add_tcase(s, tc_slab);
 
-  TCase *tc_as = tcase_create("AddressSpace");
-  check_address_space_add_static_tests(tc_as);
+  TCase *tc_as = tcase_create("Address Space");
+  check_initialize_address_space_tests(tc_as);
   suite_add_tcase(s, tc_as);
 
   return s;

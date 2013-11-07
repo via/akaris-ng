@@ -80,10 +80,14 @@ address_space_err_t address_space_free(struct address_space *);
 address_space_err_t address_space_alloc(struct address_space **);
 void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor);
 
-#ifdef HOSTED
-/* Embedded test cases for static functions */
-#include <check.h>
-void check_address_space_add_static_tests(TCase *);
+#ifdef UNITTEST
+/* non-static wrappers for static functions needing testing */
+int unittest_memory_region_compare_to_location(struct memory *mr
+    virtaddr_t addr);
+int unittest_memory_region_compare_to_region(struct memory_region *mr,
+    struct memory_region *other);
+int unittest_memory_region_available_in_address_space(struct address_space *as,
+    struct memory_region *);
 #endif
 
 
