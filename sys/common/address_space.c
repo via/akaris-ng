@@ -104,7 +104,24 @@ common_address_space_destroy(struct address_space *as) {
 address_space_err_t 
 common_address_space_get_region( struct address_space *as, 
     struct memory_region **mr, virtaddr_t loc) {
-  return AS_SUCCESS;
+  struct memory_region *i;
+
+  if (!mr)
+    return AS_INVALID;
+  if (!as) {
+    *mr = NULL;
+    return AS_INVALID;
+  }
+
+  LIST_FOREACH(i, &as->regions, regions) {
+    if (memory_region_compare_to_location(i, loc) == 0) {
+      *mr = i;
+      return AS_SUCCESS;
+    }
+  }
+
+  *mr = NULL;
+  return AS_NOTFOUND;
 }
 
 /* Add a memory region to an address space with given start address and lenth.
