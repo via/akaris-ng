@@ -64,6 +64,8 @@ common_memory_region_set_location(struct memory_region *mr,
 address_space_err_t 
 common_memory_region_set_flags(struct memory_region *mr, int writable, 
     int executable) {
+  if (!mr)
+    return AS_INVALID;
   if (executable & writable)
     return AS_INVALID;
   mr->writable = writable;
@@ -143,13 +145,13 @@ memory_region_alloc(struct memory_region **mr) {
 
 address_space_err_t 
 memory_region_free(struct memory_region *mr) {
-
+  kmem_cache_free(mr_cache, mr);
   return AS_SUCCESS;
 }
 
 address_space_err_t 
 address_space_free(struct address_space *as) {
-
+  kmem_cache_free(as_cache, as);
   return AS_SUCCESS;
 }
 

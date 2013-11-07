@@ -150,6 +150,36 @@ START_TEST (check_common_address_space_init_region) {
 
 } END_TEST
 
+START_TEST (check_common_memory_region_set_location) {
+  fail_unless(common_memory_region_set_location(NULL, (virtaddr_t)0, 0) 
+      == AS_INVALID);
+  fail_unless(common_memory_region_set_location(&mr1, (virtaddr_t)0x1000,
+        0x10) == AS_SUCCESS);
+  fail_unless(mr1.start == (virtaddr_t)0x1000);
+  fail_unless(mr1.length == 0x10);
+} END_TEST
+
+START_TEST (check_common_memory_region_set_flags) {
+  fail_unless(common_memory_region_set_flags(NULL, 0, 0) == AS_INVALID);
+  fail_unless(common_memory_region_set_flags(&mr1, 1, 1) == AS_INVALID);
+
+  fail_unless(common_memory_region_set_flags(&mr1, 1, 0) == AS_SUCCESS);
+  fail_unless(mr1.writable == 1);
+  fail_unless(mr1.executable == 0);
+
+  fail_unless(common_memory_region_set_flags(&mr1, 0, 1) == AS_SUCCESS);
+  fail_unless(mr1.writable == 0);
+  fail_unless(mr1.executable == 1);
+
+  fail_unless(common_memory_region_set_flags(&mr1, 0, 0) == AS_SUCCESS);
+  fail_unless(mr1.writable == 0);
+  fail_unless(mr1.executable == 0);
+} END_TEST
+
+START_TEST (check_common_address_space_get_region) {
+
+}
+
 void check_address_space_setup() {
   kernel()->phys = test_physmem_alloc(kernel(), 24);
   cpu()->localmem = kernel()->phys;
@@ -175,4 +205,6 @@ void check_initialize_address_space_tests(TCase *t) {
    tcase_add_test(t, check_memory_region_compare_to_location);
    tcase_add_test(t, check_memory_region_available_in_address_space);
    tcase_add_test(t, check_common_address_space_init_region);
+   tcase_add_test(t, check_common_memory_region_set_flags);
+   tcase_add_test(t, check_common_memory_region_set_location);
 }

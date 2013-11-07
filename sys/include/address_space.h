@@ -31,9 +31,9 @@ struct memory_region {
   struct memory_region_vfuncs v;
 
   /* flags */
-  int writable : 1;
-  int executable : 1;
-  int copy_on_write : 1;
+  unsigned int writable : 1;
+  unsigned int executable : 1;
+  unsigned int copy_on_write : 1;
 
   /* entry for list of regions in address space*/
   LIST_ENTRY(memory_region) regions;
