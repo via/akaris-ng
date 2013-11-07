@@ -30,7 +30,7 @@ memory_region_compare_to_location(struct memory_region *mr, virtaddr_t addr) {
 static int
 memory_region_compare_to_region(struct memory_region *mr, 
     struct memory_region *other) {
-  if (other->start + other->length < mr->start)
+  if (other->start + other->length <= mr->start)
     return -1;
   if (other->start >= mr->start + mr->length)
     return 1;
@@ -42,7 +42,7 @@ memory_region_available_in_address_space(struct address_space *as,
     struct memory_region *mr) {
   struct memory_region *m;
   LIST_FOREACH(m, &as->regions, regions) {
-    if (memory_region_compare_to_region(mr, m) != 0)
+    if (memory_region_compare_to_region(mr, m) == 0)
       return 0;
   }
   return 1;
