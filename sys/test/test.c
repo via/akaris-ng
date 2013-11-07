@@ -1,11 +1,9 @@
 #include <check.h>
 #include "kernel.h"
+#include "cpu.h"
 #include "test_physmem.h"
-#include "virtual_memory.h"
-#include "slab.h"
-#include "address_space.h"
+#include "test_address_space.h"
 #include "test_slab.h"
-#include "queue.h"
 
 #include <stdio.h>
 #include <stdlib.h>

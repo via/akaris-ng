@@ -82,7 +82,7 @@ void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor);
 
 #ifdef UNITTEST
 /* non-static wrappers for static functions needing testing */
-int unittest_memory_region_compare_to_location(struct memory *mr
+int unittest_memory_region_compare_to_location(struct memory_region *mr,
     virtaddr_t addr);
 int unittest_memory_region_compare_to_region(struct memory_region *mr,
     struct memory_region *other);

@@ -166,7 +166,7 @@ address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor) {
 
 
 #ifdef UNITTEST
-int unittest_memory_region_compare_to_location(struct memory *mr
+int unittest_memory_region_compare_to_location(struct memory_region *mr,
     virtaddr_t addr) {
   return memory_region_compare_to_location(mr, addr);
 }

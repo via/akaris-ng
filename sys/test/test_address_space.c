@@ -1,5 +1,8 @@
 
 #include <check.h>
+#include "slab.h"
+#include "virtual_memory.h"
+#include "address_space.h"
 #include "test_address_space.h"
 
 START_TEST (check_memory_region_compare_to_location) {
@@ -10,13 +13,13 @@ START_TEST (check_memory_region_compare_to_location) {
   mr.length = 8192;
 
   loc = (virtaddr_t)0x80000;
-  fail_unless(memory_region_compare_to_location(&mr, loc) < 0);
+  fail_unless(unittest_memory_region_compare_to_location(&mr, loc) < 0);
 
   loc = (virtaddr_t)0x100100;
-  fail_unless(memory_region_compare_to_location(&mr, loc) == 0);
+  fail_unless(unittest_memory_region_compare_to_location(&mr, loc) == 0);
 
   loc = (virtaddr_t)0x102000;
-  fail_unless(memory_region_compare_to_location(&mr, loc) > 0);
+  fail_unless(unittest_memory_region_compare_to_location(&mr, loc) > 0);
 } END_TEST
 
 void check_initialize_address_space_tests(TCase *t) {
