@@ -177,8 +177,46 @@ START_TEST (check_common_memory_region_set_flags) {
 } END_TEST
 
 START_TEST (check_common_address_space_get_region) {
+  struct memory_region *mr = NULL;
 
-}
+  mr1.start = (virtaddr_t)0x100000;
+  mr1.length = 0x4000;
+
+  mr2.start = (virtaddr_t)0x108000;
+  mr2.length = 0x4000;
+
+  mr3.start = (virtaddr_t)0x110000;
+  mr3.length = 0x4000;
+
+  LIST_INIT(&as.regions);
+  LIST_INSERT_HEAD(&as.regions, &mr1, regions);
+  LIST_INSERT_HEAD(&as.regions, &mr2, regions);
+  LIST_INSERT_HEAD(&as.regions, &mr3, regions);
+
+  fail_unless(common_address_space_get_region(&as, &mr, 0x0) == AS_NOTFOUND);
+  fail_unless(mr == NULL);
+
+  fail_unless(common_address_space_get_region(&as, &mr, (virtaddr_t)0x100000) 
+      == AS_SUCCESS);
+  fail_unless(mr == &mr1);
+
+  fail_unless(common_address_space_get_region(&as, &mr, (virtaddr_t)0x100100) 
+      == AS_SUCCESS);
+  fail_unless(mr == &mr1);
+
+  fail_unless(common_address_space_get_region(&as, &mr, (virtaddr_t)0x104000) 
+      == AS_NOTFOUND);
+  fail_unless(mr == NULL);
+
+  fail_unless(common_address_space_get_region(&as, &mr, (virtaddr_t)0x108100) 
+      == AS_SUCCESS);
+  fail_unless(mr == &mr2);
+
+  fail_unless(common_address_space_get_region(&as, &mr, (virtaddr_t)0x110100) 
+      == AS_SUCCESS);
+  fail_unless(mr == &mr3);
+
+} END_TEST
 
 void check_address_space_setup() {
   kernel()->phys = test_physmem_alloc(kernel(), 24);
@@ -204,7 +242,9 @@ void check_initialize_address_space_tests(TCase *t) {
    tcase_add_test(t, check_memory_region_compare_to_region);
    tcase_add_test(t, check_memory_region_compare_to_location);
    tcase_add_test(t, check_memory_region_available_in_address_space);
-   tcase_add_test(t, check_common_address_space_init_region);
    tcase_add_test(t, check_common_memory_region_set_flags);
    tcase_add_test(t, check_common_memory_region_set_location);
+
+   tcase_add_test(t, check_common_address_space_init_region);
+   tcase_add_test(t, check_common_address_space_get_region);
 }
