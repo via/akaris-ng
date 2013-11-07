@@ -48,29 +48,6 @@ memory_region_available_in_address_space(struct address_space *as,
   return 1;
 }
 
-/* Add a memory region to an address space with given start address and lenth.
- * Attempting to create a region that uses already-occupied space will result in
- * AS_USED being returned.  Start address may be rounded down, and should be
- * taken as a hint.
- */
-address_space_err_t
-address_space_init_region(struct address_space *as,
-    struct memory_region *mr, virtaddr_t start, size_t len) {
-  if (start == 0) {
-    /* generate random address */  
-  }
-  long pgsize = physmem_page_size(cpu()->localmem);
-  start = start - ((long)start % pgsize);
-  len = (len + pgsize - 1) / pgsize * pgsize;
-
-  if (!memory_region_available_in_address_space(as, mr)) 
-    return AS_USED;
-
-  LIST_INSERT_HEAD(&as->regions, mr, regions);
-  return AS_SUCCESS;
-
-}
-
 
 
 address_space_err_t 
@@ -116,6 +93,45 @@ void
 common_memory_region_fault(struct memory_region *mr, int location) {
 
 }
+
+address_space_err_t 
+common_address_space_destroy(struct address_space *as) {
+  return AS_SUCCESS;
+}
+
+address_space_err_t 
+common_address_space_get_region( struct address_space *as, 
+    struct memory_region **mr, virtaddr_t loc) {
+  return AS_SUCCESS;
+}
+
+/* Add a memory region to an address space with given start address and lenth.
+ * Attempting to create a region that uses already-occupied space will result in
+ * AS_USED being returned.  Start address will be rounded down to the nearest
+ * page size, and should be taken as a hint.
+ */
+address_space_err_t
+common_address_space_init_region(struct address_space *as,
+    struct memory_region *mr, virtaddr_t start, size_t len) {
+  if (start == 0) {
+    /* generate random address */  
+  }
+  long pgsize = physmem_page_size(cpu()->localmem);
+  start = start - ((long)start % pgsize);
+  len = (len + pgsize - 1) / pgsize * pgsize;
+
+  if (memory_region_set_location(mr, start, len) != AS_SUCCESS)
+    return AS_INVALID;
+
+  if (!memory_region_available_in_address_space(as, mr)) 
+    return AS_USED;
+
+
+  LIST_INSERT_HEAD(&as->regions, mr, regions);
+  return AS_SUCCESS;
+
+}
+
 
 address_space_err_t 
 memory_region_alloc(struct memory_region **mr) {

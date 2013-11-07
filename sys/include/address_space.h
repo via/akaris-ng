@@ -43,9 +43,11 @@ struct memory_region {
 };
 
 struct address_space_vfuncs {
-  address_space_err_t (*address_space_destroy)(struct address_space *);
-  address_space_err_t (*address_space_get_memory_region)
-    (struct address_space, struct memory_region **, virtaddr_t loc);
+  address_space_err_t (*destroy)(struct address_space *);
+  address_space_err_t (*get_region)
+    (struct address_space *, struct memory_region **, virtaddr_t loc);
+  address_space_err_t (*init_region)(struct address_space *,
+      struct memory_region *, virtaddr_t start, size_t len);
 };
 
 
@@ -70,8 +72,10 @@ void common_memory_region_fault(struct memory_region *, int location);
 
 /* arch independent space functions */
 address_space_err_t common_address_space_destroy(struct address_space *);
-address_space_err_t common_address_space_get_memory_region(
+address_space_err_t common_address_space_get_region(
     struct address_space *, struct memory_region **, virtaddr_t loc);
+address_space_err_t common_address_space_init_region(struct address_space *,
+    struct memory_region *, virtaddr_t start, size_t len);
 
 /* Global init/allocation functions */
 address_space_err_t memory_region_free(struct memory_region *);
@@ -79,6 +83,12 @@ address_space_err_t memory_region_alloc(struct memory_region **);
 address_space_err_t address_space_free(struct address_space *);
 address_space_err_t address_space_alloc(struct address_space **);
 void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor);
+
+/* Pretty interface */
+static inline address_space_err_t memory_region_set_location(
+    struct memory_region *mr, virtaddr_t start, size_t len) {
+  return mr->v.set_location(mr, start, len);
+}
 
 #ifdef UNITTEST
 /* non-static wrappers for static functions needing testing */
