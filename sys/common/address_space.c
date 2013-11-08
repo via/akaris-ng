@@ -1,6 +1,8 @@
+#include "assert.h"
 #include "kernel.h"
 #include "slab.h"
 #include "virtual_memory.h"
+#include "physical_memory.h"
 #include "address_space.h"
 
 static struct kmem_cache *as_cache;
@@ -74,16 +76,77 @@ common_memory_region_set_flags(struct memory_region *mr, int writable,
 }
 
 address_space_err_t 
-common_memory_region_clone(struct memory_region *dst, 
-    struct memory_region *src, int cow) {
+common_memory_region_clone(struct address_space *as, 
+    struct memory_region *dst, struct memory_region *src, int cow) {
+
+  return AS_SUCCESS;
+}
+
+static address_space_err_t
+memory_region_map_exact(virtmem_md_context_t pd, virtaddr_t vstart,
+    physaddr_t pstart, size_t n_pages, int flags) {
+
+  unsigned int pg_num = 0;
+  unsigned long pgsize = physmem_page_size(cpu()->localmem);
+  virtaddr_t cur;
+  physaddr_t p = pstart;
+
+  for (cur = vstart; pg_num < n_pages; ++pg_num, 
+      cur += pgsize, p += pgsize) {
+
+    virtmem_user_map_page(cpu()->kvirt, pd, cur, p);
+    virtmem_user_set_page_flags(cpu()->kvirt, pd, cur, flags);
+  }
+
+  return AS_SUCCESS;
+}
+
+static address_space_err_t
+memory_region_map_allocate(virtmem_md_context_t pd, virtaddr_t vstart,
+    size_t n_pages, int flags) {
+
+  unsigned int pg_num = 0;
+  unsigned long pgsize = physmem_page_size(cpu()->localmem);
+  virtaddr_t cur;
+  physaddr_t p;
+
+  for (cur = vstart; pg_num < n_pages; ++pg_num, cur += pgsize) {
+    virtmem_user_get_page(cpu()->kvirt, pd, &p, cur);
+    if (p == 0) {
+      /* Need to fetch a page */
+      if (physmem_page_alloc(cpu()->localmem, 0, &p) != PHYSMEM_SUCCESS)
+        return AS_OOM;
+      virtmem_user_map_page(cpu()->kvirt, pd, cur, p);
+    }
+    virtmem_user_set_page_flags(cpu()->kvirt, pd, cur, flags);
+  }
 
   return AS_SUCCESS;
 }
 
 address_space_err_t 
-common_memory_region_map(struct memory_region *mr) {
+common_memory_region_map(struct address_space *as, struct memory_region *mr, physaddr_t paddr) {
 
-  return AS_SUCCESS;
+  unsigned long pgsize = physmem_page_size(cpu()->localmem);
+  virtaddr_t cur;
+  physaddr_t p;
+  size_t n_pages;
+
+  assert((unsigned long)mr->start % pgsize == 0);
+  assert(mr->length % pgsize == 0);
+  assert(paddr == 0 || (paddr % pgsize == 0));
+
+  n_pages = mr->length / pgsize;
+
+  int page_flags = VIRTMEM_PAGE_READABLE | 
+    (mr->writable ? VIRTMEM_PAGE_WRITABLE : 0) |
+    (mr->executable ? VIRTMEM_PAGE_EXECUTABLE : 0);
+
+  if (!paddr) 
+    return memory_region_map_allocate(as->pd, mr->start, n_pages, page_flags);
+  else
+    return memory_region_map_exact(as->pd, mr->start, paddr, n_pages, 
+        page_flags);
 }
 
 void 

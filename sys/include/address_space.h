@@ -17,9 +17,6 @@ struct memory_region_vfuncs {
       virtaddr_t start, size_t len);
   address_space_err_t (*set_flags) (struct memory_region *, int writable, 
       int executable);
-  address_space_err_t (*clone) (struct memory_region *dst, 
-      struct memory_region *src, int cow);
-  address_space_err_t (*map)(struct memory_region *);
   void (*memory_region_fault)(struct memory_region *, virtaddr_t location);
 
 };
@@ -48,11 +45,16 @@ struct address_space_vfuncs {
     (struct address_space *, struct memory_region **, virtaddr_t loc);
   address_space_err_t (*init_region)(struct address_space *,
       struct memory_region *, virtaddr_t start, size_t len);
+  address_space_err_t (*clone_region) (struct address_space *,
+      struct memory_region *dst, struct memory_region *src, int cow);
+  address_space_err_t (*map_region)(struct address_space *, 
+      struct memory_region *, physaddr_t p);
 };
 
 
 struct address_space {
   struct address_space_vfuncs v;
+  virtmem_md_context_t pd;
 
   LIST_HEAD(, memory_region) regions;
 
@@ -63,9 +65,6 @@ address_space_err_t common_memory_region_set_location(
     struct memory_region *, virtaddr_t start, size_t len);
 address_space_err_t common_memory_region_set_flags(
     struct memory_region *, int writable, int executable);
-address_space_err_t common_memory_region_clone(
-    struct memory_region *dst, struct memory_region *src, int cow);
-address_space_err_t common_memory_region_map(struct memory_region *);
 void common_memory_region_cow_fault(struct memory_region *, 
     int location);
 void common_memory_region_fault(struct memory_region *, int location);
@@ -76,6 +75,10 @@ address_space_err_t common_address_space_get_region(
     struct address_space *, struct memory_region **, virtaddr_t loc);
 address_space_err_t common_address_space_init_region(struct address_space *,
     struct memory_region *, virtaddr_t start, size_t len);
+address_space_err_t common_memory_region_clone(struct address_space *,
+    struct memory_region *dst, struct memory_region *src, int cow);
+address_space_err_t common_memory_region_map(struct address_space *,
+    struct memory_region *, physaddr_t p);
 
 /* Global init/allocation functions */
 address_space_err_t memory_region_free(struct memory_region *);
@@ -88,6 +91,11 @@ void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor);
 static inline address_space_err_t memory_region_set_location(
     struct memory_region *mr, virtaddr_t start, size_t len) {
   return mr->v.set_location(mr, start, len);
+}
+
+static inline address_space_err_t memory_region_set_flags(
+    struct memory_region *mr, int w, int e) {
+  return mr->v.set_flags(mr, w, e);
 }
 
 #ifdef UNITTEST

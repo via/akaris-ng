@@ -225,12 +225,12 @@ void check_address_space_setup() {
     .destroy = common_address_space_destroy,
     .get_region = common_address_space_get_region,
     .init_region = common_address_space_init_region,
+    .clone_region = common_memory_region_clone,
+    .map_region = common_memory_region_map,
   };
   mr1.v = (struct memory_region_vfuncs) {
     .set_location = common_memory_region_set_location,
     .set_flags = common_memory_region_set_flags,
-    .clone = common_memory_region_clone,
-    .map = common_memory_region_map,
   };
   memcpy(&mr2, &mr1, sizeof(mr1));
   memcpy(&mr3, &mr1, sizeof(mr1));
