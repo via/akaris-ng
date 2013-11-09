@@ -14,6 +14,24 @@ mock_call_list_init(mock_call_list *list) {
   STAILQ_INIT(list);
 }
 
+static void mock_free_param(struct mocked_call_parameter *p) {
+  if (p->type == PARAM_STR)
+    free(p->data.str);
+
+  free(p);
+}
+
+static void mock_free_call(struct mocked_call *c) {
+  struct mocked_call_parameter *p;
+
+  STAILQ_FOREACH(p, &c->params, params) {
+    mock_free_param(p);
+  }
+
+  free(c->name);
+
+}
+
 static const char *
 mock_param_text(struct mocked_call_parameter *p) {
   static char parambuf[64];
@@ -106,20 +124,25 @@ static struct mocked_call_parameter *mock_end() {
   return newparam;
 }
 
+
 static int
 mock_compare_calls(struct mocked_call *expected, struct mocked_call *observed) {
 
-  struct mocked_call_parameter *ex, *ob;
+  struct mocked_call_parameter *ex, *ob, *tmp;
+  int retval;
   if (strcmp(expected->name, observed->name) != 0)
     return 0;
 
-  STAILQ_FOREACH(ex, &expected->params, params) {
+  STAILQ_FOREACH_SAFE(ex, &expected->params, params, tmp) {
     if (STAILQ_EMPTY(&observed->params))
       return 0;
 
     ob = STAILQ_FIRST(&observed->params);
     STAILQ_REMOVE_HEAD(&observed->params, params);
-    if (mock_compare_param(ex, ob) == 0)
+    retval = mock_compare_param(ex, ob);
+    mock_free_param(ex);
+    mock_free_param(ob);
+    if (retval == 0) 
       return 0;
   }
 
@@ -152,6 +175,7 @@ int
 mock_call_expect(mock_call_list *list, const char **err, const char *fname, ...) {
   va_list ap;
   struct mocked_call *expected_call, *observed_call;
+  int retval;
 
   va_start(ap, fname);
   expected_call = mock_call_alloc(fname);
@@ -165,9 +189,11 @@ mock_call_expect(mock_call_list *list, const char **err, const char *fname, ...)
   observed_call = STAILQ_FIRST(list);
   STAILQ_REMOVE_HEAD(list, calls);
   *err = mock_error_text(expected_call, observed_call);
-  if (mock_compare_calls(expected_call, observed_call) == 0) {
+  retval = mock_compare_calls(expected_call, observed_call);
+  mock_free_call(expected_call);
+  mock_free_call(observed_call);
+  if (retval == 0)
     return 0;
-  }
 
 
   return 1;

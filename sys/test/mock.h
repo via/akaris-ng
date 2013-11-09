@@ -20,7 +20,7 @@ struct mocked_call_parameter {
   STAILQ_ENTRY(mocked_call_parameter) params;
   mock_comparator compare;
   union {
-    const char *str;
+    char *str;
     int i;
   } data;
 };
