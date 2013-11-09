@@ -106,6 +106,10 @@ int unittest_memory_region_compare_to_region(struct memory_region *mr,
     struct memory_region *other);
 int unittest_memory_region_available_in_address_space(struct address_space *as,
     struct memory_region *);
+address_space_err_t unittest_memory_region_map_exact(virtmem_md_context_t pd
+    , virtaddr_t vstart, physaddr_t pstart, size_t n_pages, int flags);
+address_space_err_t unittest_memory_region_map_allocate(
+    virtmem_md_context_t pd, virtaddr_t vstart, size_t n_pages, int flags);
 #endif
 
 

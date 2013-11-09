@@ -278,5 +278,15 @@ int unittest_memory_region_available_in_address_space(struct address_space *as,
     struct memory_region *mr) {
   return memory_region_available_in_address_space(as, mr);
 }
+
+address_space_err_t unittest_memory_region_map_exact(virtmem_md_context_t pd
+    , virtaddr_t vstart, physaddr_t pstart, size_t n_pages, int flags) {
+  return memory_region_map_exact(pd, vstart, pstart, n_pages, flags);
+}
+
+address_space_err_t unittest_memory_region_map_allocate(
+    virtmem_md_context_t pd, virtaddr_t vstart, size_t n_pages, int flags) {
+  return memory_region_map_allocate(pd, vstart, n_pages, flags);
+}
 #endif
 

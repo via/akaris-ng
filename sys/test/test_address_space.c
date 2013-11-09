@@ -10,6 +10,7 @@
 static struct address_space as;
 static struct memory_region mr1, mr2, mr3;
 
+
 START_TEST (check_memory_region_compare_to_location) {
   virtaddr_t loc;
 
@@ -218,6 +219,31 @@ START_TEST (check_common_address_space_get_region) {
 
 } END_TEST
 
+START_TEST (check_memory_region_map_exact) {
+
+} END_TEST
+
+START_TEST (check_memory_region_map_allocate) {
+
+} END_TEST
+
+static virtmem_error_t fake_user_get_page(struct virtmem *v,
+    virtmem_md_context_t c, physaddr_t *paddr, virtaddr_t vaddr) {
+  return VIRTMEM_SUCCESS;
+}
+
+static virtmem_error_t fake_user_map_page(struct virtmem *v,
+    virtmem_md_context_t c, virtaddr_t vaddr, physaddr_t paddr) {
+  return VIRTMEM_SUCCESS;
+}
+
+static virtmem_error_t fake_user_set_page_flags(struct virtmem *v,
+    virtmem_md_context_t c, virtaddr_t vaddr, int flags) {
+  return VIRTMEM_SUCCESS;
+}
+
+static struct virtmem fake_virtmem;
+
 void check_address_space_setup() {
   kernel()->phys = test_physmem_alloc(kernel(), 24);
   cpu()->localmem = kernel()->phys;
@@ -232,6 +258,16 @@ void check_address_space_setup() {
     .set_location = common_memory_region_set_location,
     .set_flags = common_memory_region_set_flags,
   };
+  cpu()->kvirt = &fake_virtmem;
+  fake_virtmem = (struct virtmem) {
+    .cpu = cpu(),
+    .v = (struct virtmem_vfuncs) {
+      .user_map_page = fake_user_map_page,
+      .user_get_page = fake_user_get_page,
+      .user_set_page_flags = fake_user_set_page_flags,
+    },
+  };
+
   memcpy(&mr2, &mr1, sizeof(mr1));
   memcpy(&mr3, &mr1, sizeof(mr1));
 
@@ -242,6 +278,9 @@ void check_initialize_address_space_tests(TCase *t) {
    tcase_add_test(t, check_memory_region_compare_to_region);
    tcase_add_test(t, check_memory_region_compare_to_location);
    tcase_add_test(t, check_memory_region_available_in_address_space);
+   tcase_add_test(t, check_memory_region_map_exact);
+   tcase_add_test(t, check_memory_region_map_allocate);
+
    tcase_add_test(t, check_common_memory_region_set_flags);
    tcase_add_test(t, check_common_memory_region_set_location);
 
