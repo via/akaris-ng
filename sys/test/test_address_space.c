@@ -6,9 +6,12 @@
 #include "address_space.h"
 #include "test_address_space.h"
 #include "test_physmem.h"
+#include "mock.h"
 
 static struct address_space as;
 static struct memory_region mr1, mr2, mr3;
+
+mock_call_list virtmem_mock_calls;
 
 
 START_TEST (check_memory_region_compare_to_location) {
@@ -221,6 +224,30 @@ START_TEST (check_common_address_space_get_region) {
 
 START_TEST (check_memory_region_map_exact) {
 
+  address_space_err_t err;
+  const char *emsg;
+  virtmem_md_context_t pd = (virtmem_md_context_t)0x1000;
+  unsigned short pgnum;
+  err = unittest_memory_region_map_exact(pd, (virtaddr_t)0x10000,
+      (physaddr_t)0xC0000000, 5, 
+      (int)(VIRTMEM_PAGE_READABLE | VIRTMEM_PAGE_EXECUTABLE));
+  fail_unless(err == AS_SUCCESS);
+
+  for (pgnum = 0; pgnum < 5; ++pgnum) {
+    fail_unless(mock_call_expect(&virtmem_mock_calls, &emsg, "user_map_page",
+        MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
+        MOCK_PTR((long)(4096 * pgnum) + 0x10000),
+        MOCK_LONG((4096 * pgnum) + 0xC0000000), 
+        MOCK_END()), emsg);
+    fail_unless(mock_call_expect(&virtmem_mock_calls, &emsg, "user_set_page_flags",
+        MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
+        MOCK_PTR((long)(4096 * pgnum) + 0x10000),
+        MOCK_INT( (int)VIRTMEM_PAGE_READABLE | (int)VIRTMEM_PAGE_EXECUTABLE),
+        MOCK_END()), emsg);
+  }
+
+  fail_unless(mock_call_list_empty(&virtmem_mock_calls));
+
 } END_TEST
 
 START_TEST (check_memory_region_map_allocate) {
@@ -229,16 +256,22 @@ START_TEST (check_memory_region_map_allocate) {
 
 static virtmem_error_t fake_user_get_page(struct virtmem *v,
     virtmem_md_context_t c, physaddr_t *paddr, virtaddr_t vaddr) {
+  mock_call(&virtmem_mock_calls, "user_get_page", MOCK_PTR(v),
+      MOCK_PTR(c), MOCK_PTR(paddr), MOCK_PTR(vaddr), MOCK_END());
   return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t fake_user_map_page(struct virtmem *v,
     virtmem_md_context_t c, virtaddr_t vaddr, physaddr_t paddr) {
+  mock_call(&virtmem_mock_calls, "user_map_page", MOCK_PTR(v),
+      MOCK_PTR(c), MOCK_PTR(vaddr), MOCK_LONG(paddr), MOCK_END());
   return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t fake_user_set_page_flags(struct virtmem *v,
     virtmem_md_context_t c, virtaddr_t vaddr, int flags) {
+  mock_call(&virtmem_mock_calls, "user_set_page_flags", MOCK_PTR(v),
+      MOCK_PTR(c), MOCK_PTR(vaddr), MOCK_INT(flags), MOCK_END());
   return VIRTMEM_SUCCESS;
 }
 
@@ -270,6 +303,8 @@ void check_address_space_setup() {
 
   memcpy(&mr2, &mr1, sizeof(mr1));
   memcpy(&mr3, &mr1, sizeof(mr1));
+
+  mock_call_list_init(&virtmem_mock_calls);
 
 }
 

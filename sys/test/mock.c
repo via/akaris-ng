@@ -22,13 +22,14 @@ static void mock_free_param(struct mocked_call_parameter *p) {
 }
 
 static void mock_free_call(struct mocked_call *c) {
-  struct mocked_call_parameter *p;
+  struct mocked_call_parameter *p, *tmp;
 
-  STAILQ_FOREACH(p, &c->params, params) {
+  STAILQ_FOREACH_SAFE(p, &c->params, params, tmp) {
     mock_free_param(p);
   }
 
   free(c->name);
+  free(c);
 
 }
 
@@ -38,6 +39,12 @@ mock_param_text(struct mocked_call_parameter *p) {
   switch(p->type) {
     case PARAM_INT:
       sprintf(parambuf, "%d ", p->data.i);
+      break;
+    case PARAM_LONG:
+      sprintf(parambuf, "%ld", p->data.l);
+      break;
+    case PARAM_PTR:
+      sprintf(parambuf, "%p ", p->data.ptr);
       break;
     case PARAM_STR:
       sprintf(parambuf, "\"%.60s\" ", p->data.str);
@@ -91,6 +98,10 @@ mock_compare_param(struct mocked_call_parameter *expected,
       break;
     case PARAM_INT:
       return (expected->data.i == observed->data.i);
+    case PARAM_LONG:
+      return (expected->data.l == observed->data.l);
+    case PARAM_PTR:
+      return (expected->data.str == observed->data.str);
     case PARAM_STR:
       /* Both null? Ok */
       if ((expected->data.str == NULL) && (observed->data.str == NULL))
@@ -109,6 +120,18 @@ mock_compare_param(struct mocked_call_parameter *expected,
 static struct mocked_call_parameter *mock_int(int a) {
   struct mocked_call_parameter *newparam = malloc(sizeof(struct mocked_call_parameter));
   *newparam = MOCK_INT(a);
+  return newparam;
+}
+
+static struct mocked_call_parameter *mock_long(long a) {
+  struct mocked_call_parameter *newparam = malloc(sizeof(struct mocked_call_parameter));
+  *newparam = MOCK_LONG(a);
+  return newparam;
+}
+
+static struct mocked_call_parameter *mock_ptr(void *a) {
+  struct mocked_call_parameter *newparam = malloc(sizeof(struct mocked_call_parameter));
+  *newparam = MOCK_PTR(a);
   return newparam;
 }
 
@@ -139,6 +162,7 @@ mock_compare_calls(struct mocked_call *expected, struct mocked_call *observed) {
 
     ob = STAILQ_FIRST(&observed->params);
     STAILQ_REMOVE_HEAD(&observed->params, params);
+    STAILQ_REMOVE_HEAD(&expected->params, params);
     retval = mock_compare_param(ex, ob);
     mock_free_param(ex);
     mock_free_param(ob);
@@ -159,6 +183,14 @@ static void mock_assemble_args(struct mocked_call *call, va_list args) {
     p = va_arg(args, struct mocked_call_parameter);
     if (p.type == PARAM_INT) {
       new = mock_int(p.data.i);
+      STAILQ_INSERT_TAIL(&call->params, new, params);
+    }
+    if (p.type == PARAM_LONG) {
+      new = mock_long(p.data.l);
+      STAILQ_INSERT_TAIL(&call->params, new, params);
+    }
+    if (p.type == PARAM_PTR) {
+      new = mock_ptr(p.data.ptr);
       STAILQ_INSERT_TAIL(&call->params, new, params);
     }
     if (p.type == PARAM_STR) {
@@ -199,6 +231,10 @@ mock_call_expect(mock_call_list *list, const char **err, const char *fname, ...)
   return 1;
 
 
+}
+
+int mock_call_list_empty(mock_call_list *calls) {
+  return STAILQ_EMPTY(calls);
 }
 
 void mock_call(mock_call_list *calls, const char *fname, ...) {

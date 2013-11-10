@@ -9,7 +9,9 @@
 typedef enum {
   PARAM_END,
   PARAM_INT,
+  PARAM_LONG,
   PARAM_STR,
+  PARAM_PTR,
   PARAM_CUST,
 } mocked_parameter_type;
 
@@ -22,6 +24,8 @@ struct mocked_call_parameter {
   union {
     char *str;
     int i;
+    unsigned long l;
+    void *ptr;
   } data;
 };
 
@@ -38,6 +42,7 @@ void mock_call_list_init(mock_call_list *);
 
 void mock_call(mock_call_list *calls, const char *fname, ...);
 int mock_call_expect(mock_call_list *calls, const char **err, const char *fname, ...);
+int mock_call_list_empty(mock_call_list *);
 
 #define MOCK_INT(x) ( (struct mocked_call_parameter) { \
     .type = PARAM_INT, \
@@ -46,10 +51,24 @@ int mock_call_expect(mock_call_list *calls, const char **err, const char *fname,
     }, \
     })
 
+#define MOCK_LONG(x) ( (struct mocked_call_parameter) { \
+    .type = PARAM_LONG, \
+    .data = { \
+      .l = (x), \
+    }, \
+    })
+
 #define MOCK_STR(x) ( (struct mocked_call_parameter) { \
     .type = PARAM_STR, \
     .data = { \
       .str = (x), \
+    }, \
+    })
+
+#define MOCK_PTR(x) ( (struct mocked_call_parameter) { \
+    .type = PARAM_PTR, \
+    .data = { \
+      .ptr = (void *)(x), \
     }, \
     })
       
