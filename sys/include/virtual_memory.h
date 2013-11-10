@@ -43,6 +43,7 @@ struct virtmem_vfuncs {
       virtmem_md_context_t c, virtaddr_t vaddr, physaddr_t paddr);
   virtmem_error_t (*user_set_page_flags)(struct virtmem *v,
       virtmem_md_context_t c, virtaddr_t vaddr, int page_flags);
+  virtmem_error_t (*user_setup_kernelspace)(virtmem_md_context_t);
 };
 
 struct virtmem {
@@ -94,6 +95,11 @@ inline static virtmem_error_t
 virtmem_user_set_page_flags(struct virtmem *v, virtmem_md_context_t c,
     virtaddr_t vaddr, int flags) {
   return v->v.user_set_page_flags(v, c, vaddr, flags);
+}
+
+inline static virtmem_error_t 
+virtmem_user_setup_kernelspace(struct virtmem *v, virtmem_md_context_t ctx) {
+  return v->v.user_setup_kernelspace(ctx);
 }
 
 #endif

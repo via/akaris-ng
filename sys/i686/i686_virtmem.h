@@ -35,6 +35,7 @@ struct i686_pagewalk_context {
   struct i686_pde *pd;
 };
 
+
 struct i686_virtmem {
   struct virtmem virt;
   struct i686_pde *kernel_pde_list;

@@ -57,6 +57,18 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
 
 }
 
+static void
+i686_set_kernel_pdes(struct i686_pde *pd) {
+  unsigned int cur_pde;
+  for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
+      ++cur_pde) {
+    pd[cur_pde].phys_addr = ((unsigned long)(kernel_pts[cur_pde - 
+          n_start_pde]) - (unsigned long)&highstart) >> 12;
+    pd[cur_pde].present = 1;
+    pd[cur_pde].writable = 1;
+  }
+}
+
 
 struct virtmem *
 i686_virtmem_init(struct kernel *k) {
@@ -65,14 +77,7 @@ i686_virtmem_init(struct kernel *k) {
   i686_virtmem.kernel_pde_list = kernel_pd;
   i686_virtmem.virt.cpu = k->bsp;
 
-  unsigned int cur_pde;
-  for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
-      ++cur_pde) {
-    kernel_pd[cur_pde].phys_addr = ((unsigned long)(kernel_pts[cur_pde - n_start_pde]) - (unsigned long)&highstart) >> 12;
-    kernel_pd[cur_pde].present = 1;
-    kernel_pd[cur_pde].writable = 1;
-  }
-
+  i686_set_kernel_pdes(kernel_pd);
 
   i686_virtmem.identitymap_limit = &highstart;
   i686_brk((struct virtmem*)&i686_virtmem, &ebss);
@@ -236,6 +241,19 @@ i686_pagewalk(struct i686_pagewalk_context *ctx, virtaddr_t addr) {
 
 }
 
+static virtmem_error_t
+i686_setup_kernelspace(virtmem_md_context_t ctx) {
+
+  struct i686_pde *pd = (struct i686_pde *)ctx;
+  struct i686_pagewalk_context pgw;
+
+  i686_pagewalk_init(&pgw, pd);
+  i686_set_kernel_pdes(pgw.pd);
+  i686_pagewalk_done(&pgw);
+
+  return VIRTMEM_SUCCESS;
+}
+
 static virtmem_error_t 
 i686_user_get_page(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
     physaddr_t *p, virtaddr_t vaddr) {
@@ -300,6 +318,8 @@ struct i686_virtmem i686_virtmem = {
       .user_get_page = i686_user_get_page,
       .user_map_page = i686_user_map_page,
       .user_set_page_flags = i686_user_set_page_flags,
+
+      .user_setup_kernelspace = i686_setup_kernelspace,
     },
   },
 };
