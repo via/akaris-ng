@@ -12,6 +12,7 @@ typedef enum {
   PARAM_LONG,
   PARAM_STR,
   PARAM_PTR,
+  PARAM_DONTCARE,
   PARAM_CUST,
 } mocked_parameter_type;
 
@@ -71,6 +72,10 @@ int mock_call_list_empty(mock_call_list *);
       .ptr = (void *)(x), \
     }, \
     })
+
+#define MOCK_DONTCARE(x) ( (struct mocked_call_parameter) { \
+    .type = PARAM_DONTCARE, \
+  })
       
 #define MOCK_END(x) ( (struct mocked_call_parameter) { \
     .type = PARAM_END, \

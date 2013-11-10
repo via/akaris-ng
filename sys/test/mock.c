@@ -49,6 +49,9 @@ mock_param_text(struct mocked_call_parameter *p) {
     case PARAM_STR:
       snprintf(parambuf, 64, "\"%.60s\" ", p->data.str);
       break;
+    case PARAM_DONTCARE:
+      snprintf(parambuf, 64, "<dontcare>");
+      break;
     case PARAM_END:
     case PARAM_CUST:
       strcpy(parambuf, "");
@@ -112,6 +115,9 @@ static int
 mock_compare_param(struct mocked_call_parameter *expected, 
     struct mocked_call_parameter *observed) {
 
+  if (expected->type == PARAM_DONTCARE)
+    return 1;
+
   if (expected->type != observed->type)
     return 0;
 
@@ -161,6 +167,12 @@ static struct mocked_call_parameter *mock_ptr(void *a) {
 static struct mocked_call_parameter *mock_str(const char *a) {
   struct mocked_call_parameter *newparam = malloc(sizeof(struct mocked_call_parameter));
   *newparam = MOCK_STR(strdup(a));
+  return newparam;
+}
+
+static struct mocked_call_parameter *mock_dontcare() {
+  struct mocked_call_parameter *newparam = malloc(sizeof(struct mocked_call_parameter));
+  *newparam = MOCK_DONTCARE();
   return newparam;
 }
 
@@ -214,6 +226,10 @@ static void mock_assemble_args(struct mocked_call *call, va_list args) {
     }
     if (p.type == PARAM_PTR) {
       new = mock_ptr(p.data.ptr);
+      STAILQ_INSERT_TAIL(&call->params, new, params);
+    }
+    if (p.type == PARAM_DONTCARE) {
+      new = mock_dontcare();
       STAILQ_INSERT_TAIL(&call->params, new, params);
     }
     if (p.type == PARAM_STR) {

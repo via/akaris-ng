@@ -250,7 +250,40 @@ START_TEST (check_memory_region_map_exact) {
 
 } END_TEST
 
-START_TEST (check_memory_region_map_allocate) {
+START_TEST (check_memory_region_map_allocate_unallocated) {
+  address_space_err_t err;
+  const char *emsg;
+  virtmem_md_context_t pd = (virtmem_md_context_t)0x1000;
+  unsigned short pgnum;
+  struct physmem_stats stats;
+
+  err = unittest_memory_region_map_allocate(pd, (virtaddr_t)0x10000,
+      5, (int)(VIRTMEM_PAGE_READABLE | VIRTMEM_PAGE_EXECUTABLE));
+  fail_unless(err == AS_SUCCESS);
+
+  for (pgnum = 0; pgnum < 5; ++pgnum) {
+    fail_unless(mock_expect(&virtmem_mock_calls, &emsg, "user_get_page",
+        MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
+        MOCK_DONTCARE(),
+        MOCK_PTR((long)(4096 * pgnum) + 0x10000),
+        MOCK_END()), emsg);
+    fail_unless(mock_expect(&virtmem_mock_calls, &emsg, "user_map_page",
+        MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
+        MOCK_PTR((long)(4096 * pgnum) + 0x10000), 
+        MOCK_DONTCARE(),
+        MOCK_END()), emsg);
+    fail_unless(mock_expect(&virtmem_mock_calls, &emsg, "user_set_page_flags",
+        MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
+        MOCK_PTR((long)(4096 * pgnum) + 0x10000),
+        MOCK_INT( (int)VIRTMEM_PAGE_READABLE | (int)VIRTMEM_PAGE_EXECUTABLE),
+        MOCK_END()), emsg);
+  }
+
+  stats = physmem_stats_get(cpu()->localmem);
+  fail_unless(stats.free_pages == 24 - 5);
+
+
+  fail_unless(mock_call_list_empty(&virtmem_mock_calls));
 
 } END_TEST
 
@@ -258,6 +291,7 @@ static virtmem_error_t fake_user_get_page(struct virtmem *v,
     virtmem_md_context_t c, physaddr_t *paddr, virtaddr_t vaddr) {
   mock_call(&virtmem_mock_calls, "user_get_page", MOCK_PTR(v),
       MOCK_PTR(c), MOCK_PTR(paddr), MOCK_PTR(vaddr), MOCK_END());
+  *paddr = 0;
   return VIRTMEM_SUCCESS;
 }
 
@@ -314,7 +348,7 @@ void check_initialize_address_space_tests(TCase *t) {
    tcase_add_test(t, check_memory_region_compare_to_location);
    tcase_add_test(t, check_memory_region_available_in_address_space);
    tcase_add_test(t, check_memory_region_map_exact);
-   tcase_add_test(t, check_memory_region_map_allocate);
+   tcase_add_test(t, check_memory_region_map_allocate_unallocated);
 
    tcase_add_test(t, check_common_memory_region_set_flags);
    tcase_add_test(t, check_common_memory_region_set_location);
