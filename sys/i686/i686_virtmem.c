@@ -164,8 +164,34 @@ i686_kernel_map_virt_to_phys(struct virtmem *_v,
   
   pte->phys_addr = p >> 12;
   return VIRTMEM_SUCCESS;
+  /* TODO: invalidate page in tlb */
 }
 
+static void i686_pagewalk_init(struct i686_pagewalk_context *ctx) {
+  ctx->pagestart = (virtaddr_t)0;
+
+  virtaddr_t adr;
+  virtmem_kernel_alloc(cpu()->kvirt, &adr, 1);
+  ctx->pt = adr;
+}
+
+
+static void i686_pagewalk_done(struct i686_pagewalk_context *ctx) {
+  virtmem_kernel_free(cpu()->kvirt, ctx->pt);
+}
+
+static struct i686_pte * 
+i686_pagewalk(struct i686_pagewalk_context *ctx, struct i686_pde *physpd, virtaddr_t addr) {
+  long ptsize = physmem_page_size(cpu()->localmem) * 1024;
+  long offset = addr % ptsize;
+  if (addr - offset != ctx->pagestart) {
+    virtmem_kernel_map_virt_to_phys(cpu()->kvirt, (physaddr_t)physpd, ctx->pt);
+    ctx->pagestart = addr - offset;
+  }
+
+  return ctx->pt[offset / physmem_page_size(cpu()->localmem)];
+
+}
 
 struct i686_virtmem i686_virtmem = {
   .virt = {
@@ -175,6 +201,10 @@ struct i686_virtmem i686_virtmem = {
       .kernel_virt_to_phys = i686_kernel_virt_to_phys,
       .kernel_map_virt_to_phys = i686_kernel_map_virt_to_phys,
       .kernel_brk = i686_brk,
+
+      .user_get_page = NULL,
+      .user_map_page = NULL,
+      .user_set_page_flags = NULL,
     },
   },
 };

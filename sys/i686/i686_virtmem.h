@@ -29,6 +29,11 @@ struct i686_pte {
   physaddr_t phys_addr : 20;
 } __attribute__((__packed__));
 
+struct i686_pagewalk_context {
+  virtaddr_t pagestart;
+  struct i686_pde *pt;
+};
+
 struct i686_virtmem {
   struct virtmem virt;
   struct i686_pde *kernel_pde_list;
