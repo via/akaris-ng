@@ -31,7 +31,8 @@ struct i686_pte {
 
 struct i686_pagewalk_context {
   virtaddr_t pagestart;
-  struct i686_pde *pt;
+  struct i686_pte *pt;
+  struct i686_pde *pd;
 };
 
 struct i686_virtmem {
