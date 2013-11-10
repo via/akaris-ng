@@ -169,7 +169,7 @@ i686_kernel_map_virt_to_phys(struct virtmem *_v,
   struct i686_virtmem *v = (struct i686_virtmem *)_v;
   struct i686_pte *pte = i686_virt_to_pte(v, addr);
 
-  assert (pte->present = 1);
+  assert (pte->present == 1);
   if (!pte->present)
     return VIRTMEM_NOTPRESENT;  
   
