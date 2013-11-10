@@ -1,10 +1,9 @@
 #include <check.h>
 #include "kernel.h"
+#include "cpu.h"
 #include "test_physmem.h"
-#include "virtual_memory.h"
-#include "slab.h"
+#include "test_address_space.h"
 #include "test_slab.h"
-#include "queue.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -39,6 +38,10 @@ main_suite() {
   TCase *tc_slab = tcase_create("SLAB Allocator");
   check_initialize_slab_tests(tc_slab);
   suite_add_tcase(s, tc_slab);
+
+  TCase *tc_as = tcase_create("Address Space");
+  check_initialize_address_space_tests(tc_as);
+  suite_add_tcase(s, tc_as);
 
   return s;
 }

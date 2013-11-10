@@ -8,10 +8,12 @@
 #include "assert.h"
 #include "mutex.h"
 #include "kernel.h"
+#include "address_space.h"
 #include "i686_cpu.h"
 #include "i686_virtmem.h"
 #include "i686_physmem.h"
 #include "slab.h"
+#include "i686_address_space.h"
 
 
 static struct kernel i686_kernel;
@@ -99,7 +101,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   strcpy(t1, "This shows the validity of the slab allocation");
   i686_debug("%x contains: %s\n", t1, t1);
 
-  *((int *)0x50000000) = 5;
+  i686_address_space_init();
 
   while (1);
 
