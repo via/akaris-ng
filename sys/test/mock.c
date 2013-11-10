@@ -38,16 +38,16 @@ mock_param_text(struct mocked_call_parameter *p) {
   static char parambuf[64];
   switch(p->type) {
     case PARAM_INT:
-      sprintf(parambuf, "%d ", p->data.i);
+      snprintf(parambuf, 64, "%d ", p->data.i);
       break;
     case PARAM_LONG:
-      sprintf(parambuf, "%ld", p->data.l);
+      snprintf(parambuf, 64, "%ld", p->data.l);
       break;
     case PARAM_PTR:
-      sprintf(parambuf, "%p ", p->data.ptr);
+      snprintf(parambuf, 64, "%p ", p->data.ptr);
       break;
     case PARAM_STR:
-      sprintf(parambuf, "\"%.60s\" ", p->data.str);
+      snprintf(parambuf, 64, "\"%.60s\" ", p->data.str);
       break;
     case PARAM_END:
     case PARAM_CUST:
@@ -56,32 +56,55 @@ mock_param_text(struct mocked_call_parameter *p) {
   }
   return parambuf;
 }
+static char *
+mock_call_text(struct mocked_call *c) {
+
+  char *buf;
+  int totlen = 0;
+  struct mocked_call_parameter *p;
+  /* First figure total length of params list */
+  STAILQ_FOREACH(p, &c->params, params) {
+    totlen += strlen(mock_param_text(p)) + 1;
+  }
+
+  buf = malloc(totlen + strlen(c->name) + 4); /* lengths + two paren, space, null */
+  strcpy(buf, c->name);
+  strcat(buf, "( ");
+  STAILQ_FOREACH(p, &c->params, params) {
+    strcat(buf, mock_param_text(p));
+    strcat(buf, " ");
+  }
+  strcat(buf, ")");
+
+  return buf;
+}
+
 static const char *
 mock_error_text(struct mocked_call *expected, struct mocked_call *observed) {
-  static char buf[256] = "";
+  char *ex = NULL, *ob = NULL;
+  char *buf;
 
-  struct mocked_call_parameter *p;
-  
   if (expected != NULL) {
-    sprintf(buf, "Expected: %s( ", expected->name);
-    STAILQ_FOREACH(p, &expected->params, params) {
-      strcat(buf, mock_param_text(p));
-    }
-    strcat(buf, ") ");
+    ex = mock_call_text(expected);
   } else {
-    strcat(buf, " - ");
+    ex = " -none- ";
   }
   if (observed != NULL) {
-    strcat(buf, "    Observed: ");
-    strcat(buf, observed->name);
-    strcat(buf, "( ");
-    STAILQ_FOREACH(p, &observed->params, params) {
-      strcat(buf, mock_param_text(p));
-    }
-    strcat(buf, ")");
+    ob = mock_call_text(observed);
   } else {
-    strcat(buf, " - ");
+    ob = " - none- ";
   }
+
+  const char *fmt = "expected: %s   observed: %s";
+  int bufsize = strlen(ex) + strlen(ob) + strlen(fmt) + 1; 
+  buf = malloc(bufsize);
+  snprintf(buf, bufsize, fmt, ex, ob);
+
+  if (expected)
+    free(ex);
+  if (observed)
+    free(ob);
+
   return buf;
 }
 
