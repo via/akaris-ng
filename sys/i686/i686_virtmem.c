@@ -16,6 +16,10 @@ struct i686_pte kernel_pts[256][1024] __attribute__((aligned(4096)));
 struct i686_pte *kernel_flatpt = (struct i686_pte *)kernel_pts;
 extern int highstart;
 
+static void i686_invalidate_page(virtaddr_t a) {
+  __asm__("invlpg %0" :: "m"(a));
+}
+
 static void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
           "movl %%eax, %%cr3" :: "m"(cr3));
@@ -45,6 +49,7 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
     kernel_flatpt[phys_page].phys_addr = phys_page;
     kernel_flatpt[phys_page].present = 1;
     kernel_flatpt[phys_page].writable = 1;
+    i686_invalidate_page((virtaddr_t)(curpage * pg_size));
   } 
   v->identitymap_limit = newend;
   
@@ -100,6 +105,7 @@ i686_kernel_alloc(struct virtmem *v VAR_UNUSED, virtaddr_t *addr,
     if (pte->present == 0) {
       pte->present = 1;
       *addr = pgindex * pg_size + (virtaddr_t)&highstart;
+      i686_invalidate_page(*addr);
       return VIRTMEM_SUCCESS;
     }
   }
@@ -163,23 +169,43 @@ i686_kernel_map_virt_to_phys(struct virtmem *_v,
     return VIRTMEM_NOTPRESENT;  
   
   pte->phys_addr = p >> 12;
+  i686_invalidate_page(addr);
   return VIRTMEM_SUCCESS;
   /* TODO: invalidate page in tlb */
 }
 
-static void i686_pagewalk_init(struct i686_pagewalk_context *ctx, 
+static int i686_initialize_pde(struct i686_pde *pde) {
+  physaddr_t pde_phys;
+
+  if (physmem_page_alloc(cpu()->localmem, 0, &pde_phys) != PHYSMEM_SUCCESS)
+    return -1;
+
+  pde->phys_addr = pde_phys / physmem_page_size(cpu()->localmem);
+  pde->present = 1;
+  pde->user = 1;
+  pde->writable = 1;
+
+  return 0;
+}
+
+static int i686_pagewalk_init(struct i686_pagewalk_context *ctx, 
     struct i686_pde *physpd) {
   virtaddr_t adr;
 
   ctx->pagestart = (virtaddr_t)0;
 
-  virtmem_kernel_alloc(cpu()->kvirt, &adr, 1);
+  if (virtmem_kernel_alloc(cpu()->kvirt, &adr, 1) != VIRTMEM_SUCCESS)
+    return -1;
   ctx->pt = adr;
 
-  virtmem_kernel_alloc(cpu()->kvirt, &adr, 1);
+  if (virtmem_kernel_alloc(cpu()->kvirt, &adr, 1) != VIRTMEM_SUCCESS) {
+    virtmem_kernel_free(cpu()->kvirt, adr);
+    return -1;
+  }
   ctx->pd = adr;
 
   virtmem_kernel_map_virt_to_phys(cpu()->kvirt, (physaddr_t)physpd, ctx->pd);
+  return 0;
 }
 
 
@@ -194,6 +220,12 @@ i686_pagewalk(struct i686_pagewalk_context *ctx, virtaddr_t addr) {
   long ptsize = pgsize * 1024;
   long offset = (long)addr % ptsize;
   long pdoffset = offset / pgsize;
+  
+  if (ctx->pd[pdoffset].present == 0) {
+    /* PDE doesn't exist, create one */
+    i686_initialize_pde(&ctx->pd[pdoffset]);
+  }
+
   if (addr - offset != ctx->pagestart) {
     physaddr_t ptaddr = ctx->pd[pdoffset].phys_addr * pgsize;
     virtmem_kernel_map_virt_to_phys(cpu()->kvirt, ptaddr, ctx->pt);
@@ -205,12 +237,14 @@ i686_pagewalk(struct i686_pagewalk_context *ctx, virtaddr_t addr) {
 }
 
 static virtmem_error_t 
-i686_user_get_page(struct virtmem *v, virtmem_md_context_t c,
+i686_user_get_page(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
     physaddr_t *p, virtaddr_t vaddr) {
   struct i686_pagewalk_context ctx;
   struct i686_pte *l;
 
-  i686_pagewalk_init(&ctx, c);
+  if (i686_pagewalk_init(&ctx, c) < 0)
+    return VIRTMEM_OOM;
+
   l = i686_pagewalk(&ctx, vaddr);
   *p = l->phys_addr * physmem_page_size(cpu()->localmem);
   i686_pagewalk_done(&ctx);
@@ -219,15 +253,37 @@ i686_user_get_page(struct virtmem *v, virtmem_md_context_t c,
 }
 
 static virtmem_error_t 
-i686_user_map_page(struct virtmem *v, virtmem_md_context_t c,
+i686_user_map_page(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
     virtaddr_t vaddr, physaddr_t p) {
+  struct i686_pagewalk_context ctx;
+  struct i686_pte *l;
+
+  if (i686_pagewalk_init(&ctx, c) < 0)
+    return VIRTMEM_OOM;
+
+  l = i686_pagewalk(&ctx, vaddr);
+  l->phys_addr = p / physmem_page_size(cpu()->localmem);
+  i686_pagewalk_done(&ctx);
+
+  i686_invalidate_page(vaddr);
 
   return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t 
-i686_user_set_page_flags(struct virtmem *v, virtmem_md_context_t c,
+i686_user_set_page_flags(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
     virtaddr_t vaddr, int flags) {
+  struct i686_pagewalk_context ctx;
+  struct i686_pte *l;
+
+  i686_pagewalk_init(&ctx, c);
+  l = i686_pagewalk(&ctx, vaddr);
+  l->writable = flags & VIRTMEM_PAGE_WRITABLE;
+  l->user = flags & VIRTMEM_PAGE_READABLE;
+  l->present = 1;
+  /* Currently nothing to prevent execution of nonexecute pages for i686 */
+  i686_pagewalk_done(&ctx);
+  i686_invalidate_page(vaddr);
 
   return VIRTMEM_SUCCESS;
 }
