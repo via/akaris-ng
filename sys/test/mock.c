@@ -204,7 +204,7 @@ static void mock_assemble_args(struct mocked_call *call, va_list args) {
 
 
 int
-mock_call_expect(mock_call_list *list, const char **err, const char *fname, ...) {
+mock_expect(mock_call_list *list, const char **err, const char *fname, ...) {
   va_list ap;
   struct mocked_call *expected_call, *observed_call;
   int retval;

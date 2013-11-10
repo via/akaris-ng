@@ -234,12 +234,12 @@ START_TEST (check_memory_region_map_exact) {
   fail_unless(err == AS_SUCCESS);
 
   for (pgnum = 0; pgnum < 5; ++pgnum) {
-    fail_unless(mock_call_expect(&virtmem_mock_calls, &emsg, "user_map_page",
+    fail_unless(mock_expect(&virtmem_mock_calls, &emsg, "user_map_page",
         MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
         MOCK_PTR((long)(4096 * pgnum) + 0x10000),
         MOCK_LONG((4096 * pgnum) + 0xC0000000), 
         MOCK_END()), emsg);
-    fail_unless(mock_call_expect(&virtmem_mock_calls, &emsg, "user_set_page_flags",
+    fail_unless(mock_expect(&virtmem_mock_calls, &emsg, "user_set_page_flags",
         MOCK_PTR(cpu()->kvirt), MOCK_PTR(pd), 
         MOCK_PTR((long)(4096 * pgnum) + 0x10000),
         MOCK_INT( (int)VIRTMEM_PAGE_READABLE | (int)VIRTMEM_PAGE_EXECUTABLE),

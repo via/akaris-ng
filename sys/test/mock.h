@@ -41,7 +41,7 @@ struct mocked_call *mock_call_alloc(const char *name);
 void mock_call_list_init(mock_call_list *);
 
 void mock_call(mock_call_list *calls, const char *fname, ...);
-int mock_call_expect(mock_call_list *calls, const char **err, const char *fname, ...);
+int mock_expect(mock_call_list *calls, const char **err, const char *fname, ...);
 int mock_call_list_empty(mock_call_list *);
 
 #define MOCK_INT(x) ( (struct mocked_call_parameter) { \
