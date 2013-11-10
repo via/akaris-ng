@@ -250,15 +250,16 @@ address_space_alloc(struct address_space **as) {
  *
  */
 void
-address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor) {
+address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor,
+    kmem_cache_dtor as_dtor, kmem_cache_ctor mr_dtor) {
 
   as_cache = kmem_alloc(kernel()->bsp->allocator);
   mr_cache = kmem_alloc(kernel()->bsp->allocator);
 
   kmem_cache_init(kernel()->bsp->allocator, as_cache, kernel()->bsp, 
-      "address_space", sizeof(struct address_space), as_ctor, NULL);
+      "address_space", sizeof(struct address_space), as_ctor, as_dtor);
   kmem_cache_init(kernel()->bsp->allocator, mr_cache, kernel()->bsp, 
-      "memory_region", sizeof(struct memory_region), mr_ctor, NULL);
+      "memory_region", sizeof(struct memory_region), mr_ctor, mr_dtor);
 
 }
 

@@ -1,6 +1,12 @@
 #ifndef COMMON_ADDRESS_SPACE_H
 #define COMMON_ADDRESS_SPACE_H
 
+#include "queue.h"
+#include "slab.h"
+#include "kernel.h"
+#include "virtual_memory.h"
+#include "physical_memory.h"
+
 struct memory_region;
 struct address_space;
 
@@ -17,7 +23,7 @@ struct memory_region_vfuncs {
       virtaddr_t start, size_t len);
   address_space_err_t (*set_flags) (struct memory_region *, int writable, 
       int executable);
-  void (*memory_region_fault)(struct memory_region *, virtaddr_t location);
+  void (*fault)(struct memory_region *, virtaddr_t location);
 
 };
 
@@ -85,7 +91,8 @@ address_space_err_t memory_region_free(struct memory_region *);
 address_space_err_t memory_region_alloc(struct memory_region **);
 address_space_err_t address_space_free(struct address_space *);
 address_space_err_t address_space_alloc(struct address_space **);
-void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor);
+void address_space_init(kmem_cache_ctor as_ctor, kmem_cache_ctor mr_ctor,
+                        kmem_cache_dtor as_dtor, kmem_cache_dtor mr_dtor);
 
 /* Pretty interface */
 static inline address_space_err_t memory_region_set_location(
