@@ -17,12 +17,43 @@ struct i686_pte *kernel_flatpt = (struct i686_pte *)kernel_pts;
 extern int highstart;
 
 static void i686_invalidate_page(virtaddr_t a) {
-  __asm__("invlpg %0" :: "m"(a));
+  __asm__("invlpg (%0)" :: "r"(a) : "memory");
 }
 
 static void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
           "movl %%eax, %%cr3" :: "m"(cr3));
+}
+
+
+static void i686_set_pte(struct i686_pte *p, physaddr_t addr, int flags) {
+
+    p->phys_addr = addr >> 12;
+    p->present = flags & I686_PAGE_PRESENT;
+    p->writable = flags & I686_PAGE_WRITABLE;
+    p->write_through = flags & I686_PAGE_WRITETHROUGH; 
+    p->cache_disable = flags & I686_PAGE_CACHEDISABLE;
+    p->user = flags & I686_PAGE_USER;
+    p->accessed = 0;
+    p->dirty = 0;
+    p->zero = 0;
+    p->global = flags & I686_PAGE_GLOBAL;
+    p->avail = 0;
+}
+
+static void i686_set_pde(struct i686_pde *p, physaddr_t loc, int flags) {
+
+    p->phys_addr = loc >> 12;
+    p->present = flags & I686_PAGE_PRESENT;
+    p->writable = flags & I686_PAGE_WRITABLE;
+    p->write_through = flags & I686_PAGE_WRITETHROUGH;
+    p->cache_disable = flags & I686_PAGE_CACHEDISABLE;
+    p->user = flags & I686_PAGE_USER;
+    p->accessed = 0;
+    p->size = 0;
+    p->zero = 0;
+    p->global = flags & I686_PAGE_GLOBAL;
+    p->avail = 0;
 }
 
 /* Makes at the space from PHYS_KERN_START to limit identity mapped
@@ -45,10 +76,10 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
   kernel()->debug("Setting limit: %x -> %x\n", old_limit_page, new_limit_page);
 
   for (curpage = old_limit_page + 1; curpage <= new_limit_page; ++curpage) {
-    long phys_page = curpage - ((physaddr_t)&highstart / pg_size);
-    kernel_flatpt[phys_page].phys_addr = phys_page;
-    kernel_flatpt[phys_page].present = 1;
-    kernel_flatpt[phys_page].writable = 1;
+    physaddr_t phys_addr = (pg_size * curpage) - (physaddr_t)&highstart;
+    long phys_page = phys_addr / pg_size;
+    i686_set_pte(&kernel_flatpt[phys_page], phys_addr, 
+        I686_PAGE_PRESENT | I686_PAGE_WRITABLE);
     i686_invalidate_page((virtaddr_t)(curpage * pg_size));
   } 
   v->identitymap_limit = newend;
@@ -57,22 +88,26 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
 
 }
 
+static void
+i686_set_kernel_pdes(struct i686_pde *pd) {
+  unsigned int cur_pde;
+  for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
+      ++cur_pde) {
+    i686_set_pde(&pd[cur_pde], ((unsigned long)(kernel_pts[cur_pde - 
+          n_start_pde]) - (unsigned long)&highstart),
+          I686_PAGE_PRESENT | I686_PAGE_WRITABLE);
+  }
+}
+
 
 struct virtmem *
 i686_virtmem_init(struct kernel *k) {
 
   extern int ebss;
-  i686_virtmem.kernel_pde_list = kernel_pd;
+  i686_virtmem.kernel_pde_list = &kernel_pd[n_start_pde];
   i686_virtmem.virt.cpu = k->bsp;
 
-  unsigned int cur_pde;
-  for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
-      ++cur_pde) {
-    kernel_pd[cur_pde].phys_addr = ((unsigned long)(kernel_pts[cur_pde - n_start_pde]) - (unsigned long)&highstart) >> 12;
-    kernel_pd[cur_pde].present = 1;
-    kernel_pd[cur_pde].writable = 1;
-  }
-
+  i686_set_kernel_pdes(kernel_pd);
 
   i686_virtmem.identitymap_limit = &highstart;
   i686_brk((struct virtmem*)&i686_virtmem, &ebss);
@@ -125,15 +160,14 @@ i686_kernel_free(struct virtmem *v VAR_UNUSED, virtaddr_t addr VAR_UNUSED) {
 
 static struct i686_pte *
 i686_virt_to_pte(struct i686_virtmem *v, virtaddr_t addr) {
-  uint32 n_pte, n_pde;
+  uint32 n_pde;
   struct i686_pte *pte;
 
   uint32 pagenum = (uint32)addr / physmem_page_size(v->virt.cpu->localmem);
-  n_pte = pagenum % 1024;
   n_pde = (pagenum / 1024) - n_start_pde;
 
   assert(n_pde < n_kernel_pde);
-  pte = &((struct i686_pte *)(v->kernel_pde_list[n_pde].phys_addr << 12))[n_pte];
+  pte = &kernel_flatpt[pagenum - (n_start_pde*1024)];
 
   return pte;
 }
@@ -164,11 +198,11 @@ i686_kernel_map_virt_to_phys(struct virtmem *_v,
   struct i686_virtmem *v = (struct i686_virtmem *)_v;
   struct i686_pte *pte = i686_virt_to_pte(v, addr);
 
-  assert (pte->present = 1);
+  assert (pte->present == 1);
   if (!pte->present)
     return VIRTMEM_NOTPRESENT;  
   
-  pte->phys_addr = p >> 12;
+  i686_set_pte(pte, p, I686_PAGE_WRITABLE | I686_PAGE_PRESENT);
   i686_invalidate_page(addr);
   return VIRTMEM_SUCCESS;
   /* TODO: invalidate page in tlb */
@@ -180,10 +214,8 @@ static int i686_initialize_pde(struct i686_pde *pde) {
   if (physmem_page_alloc(cpu()->localmem, 0, &pde_phys) != PHYSMEM_SUCCESS)
     return -1;
 
-  pde->phys_addr = pde_phys / physmem_page_size(cpu()->localmem);
-  pde->present = 1;
-  pde->user = 1;
-  pde->writable = 1;
+  i686_set_pde(pde,  pde_phys, I686_PAGE_PRESENT | I686_PAGE_WRITABLE |
+      I686_PAGE_USER);
 
   return 0;
 }
@@ -234,6 +266,19 @@ i686_pagewalk(struct i686_pagewalk_context *ctx, virtaddr_t addr) {
 
   return &ctx->pt[offset / physmem_page_size(cpu()->localmem)];
 
+}
+
+static virtmem_error_t
+i686_setup_kernelspace(virtmem_md_context_t ctx) {
+
+  struct i686_pde *pd = (struct i686_pde *)ctx;
+  struct i686_pagewalk_context pgw;
+
+  i686_pagewalk_init(&pgw, pd);
+  i686_set_kernel_pdes(pgw.pd);
+  i686_pagewalk_done(&pgw);
+
+  return VIRTMEM_SUCCESS;
 }
 
 static virtmem_error_t 
@@ -300,6 +345,8 @@ struct i686_virtmem i686_virtmem = {
       .user_get_page = i686_user_get_page,
       .user_map_page = i686_user_map_page,
       .user_set_page_flags = i686_user_set_page_flags,
+
+      .user_setup_kernelspace = i686_setup_kernelspace,
     },
   },
 };

@@ -102,6 +102,18 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_debug("%x contains: %s\n", t1, t1);
 
   i686_address_space_init();
+  struct address_space *as;
+  struct memory_region *mr, *mr2;
+  address_space_alloc(&as);
+  memory_region_alloc(&mr);
+  memory_region_alloc(&mr2);
+
+  e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
+  virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
+  
+  address_space_init_region(as, mr, (virtaddr_t)0x100000, 0xC0000);
+  i686_debug("%d\n", address_space_init_region(as, mr2, (virtaddr_t)0x300000, 0xC0000));
+
 
   while (1);
 

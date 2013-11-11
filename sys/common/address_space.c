@@ -240,6 +240,8 @@ address_space_alloc(struct address_space **as) {
   *as = kmem_cache_alloc(as_cache);
   if (!as)
     return AS_OOM;
+  LIST_INIT(&(*as)->regions);
+  virtmem_user_setup_kernelspace(cpu()->kvirt, (*as)->pd);
   return AS_SUCCESS;
 }
 

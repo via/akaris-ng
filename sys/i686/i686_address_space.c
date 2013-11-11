@@ -1,5 +1,6 @@
 #include "cpu.h"
 #include "physical_memory.h"
+#include "i686_physmem.h"
 #include "address_space.h"
 
 

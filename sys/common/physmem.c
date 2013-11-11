@@ -105,6 +105,20 @@ static physmem_error_t feeder_physmem_page_alloc(struct physmem *p,
 
 }
 
+static struct physmem_page * 
+feeder_physmem_phys_to_page (const struct physmem *_p, physaddr_t addr) {
+  const struct feeder_physmem *p = (const struct feeder_physmem *)_p;
+  return p->source->v.phys_to_page(p->source, addr);
+}
+
+static physaddr_t
+feeder_physmem_page_to_phys (const struct physmem *_p, 
+    const struct physmem_page *page) {
+  const struct feeder_physmem *p = (const struct feeder_physmem *)_p;
+  return p->source->v.page_to_phys(p->source, page);
+}
+
+
 
 struct physmem_stats feeder_physmem_stats_get(const struct physmem *p) {
 
@@ -124,8 +138,8 @@ void feeder_physmem_create(struct feeder_physmem *dest,
   dest->min_free_source_pages = min_source_pages;
   dest->p.parent = source->parent;
   dest->p.name = "feeder";
-  dest->p.v.phys_to_page = source->v.phys_to_page;
-  dest->p.v.page_to_phys = source->v.page_to_phys;
+  dest->p.v.phys_to_page = feeder_physmem_phys_to_page;
+  dest->p.v.page_to_phys = feeder_physmem_page_to_phys;
   dest->p.v.page_alloc = feeder_physmem_page_alloc;
   dest->p.v.page_free = feeder_physmem_page_free;
   dest->p.v.stats_get = feeder_physmem_stats_get;

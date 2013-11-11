@@ -105,6 +105,13 @@ static inline address_space_err_t memory_region_set_flags(
   return mr->v.set_flags(mr, w, e);
 }
 
+static inline address_space_err_t address_space_init_region(
+    struct address_space *as, struct memory_region *mr, virtaddr_t start,
+    size_t len) {
+  return as->v.init_region(as, mr, start, len);
+}
+
+
 #ifdef UNITTEST
 /* non-static wrappers for static functions needing testing */
 int unittest_memory_region_compare_to_location(struct memory_region *mr,

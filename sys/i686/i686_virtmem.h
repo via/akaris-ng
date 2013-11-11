@@ -35,6 +35,16 @@ struct i686_pagewalk_context {
   struct i686_pde *pd;
 };
 
+typedef enum {
+  I686_PAGE_PRESENT = 1,
+  I686_PAGE_WRITABLE = 2,
+  I686_PAGE_WRITETHROUGH = 4,
+  I686_PAGE_CACHEDISABLE = 8,
+  I686_PAGE_GLOBAL = 16,
+  I686_PAGE_USER   = 32,
+} i686_page_flags;
+
+
 struct i686_virtmem {
   struct virtmem virt;
   struct i686_pde *kernel_pde_list;
