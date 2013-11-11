@@ -1,6 +1,6 @@
 
 SUBDIRS+=${SRCROOT}/common ${SRCROOT}/lib
-CFLAGS+=-Wall -Wextra -I${SRCROOT}/include -I${SRCROOT}/${ARCH} -std=c99 -g -O0
+CFLAGS+=-Wall -Wextra -I${SRCROOT}/include -I${SRCROOT}/${ARCH} -std=c99 -ggdb -O0
 
 .for dir in ${SUBDIRS}
 .include "${dir}/Makefile"
