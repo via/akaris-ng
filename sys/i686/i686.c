@@ -73,7 +73,6 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
 
-  void i686_set_cr3(struct i686_pde *);
   i686_kernel.bsp->v.init(i686_kernel.bsp);
 
   i686_debug("Location GDT entry: %x\n", ((struct i686_cpu *)i686_kernel.bsp)->gdt);
@@ -113,7 +112,6 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
   
   address_space_init_region(as, mr, (virtaddr_t)0x100000, 0xC0000);
-  i686_set_cr3(as->pd);
   i686_debug("%d\n", address_space_init_region(as, mr2, (virtaddr_t)0x300000, 0xC0000));
 
 

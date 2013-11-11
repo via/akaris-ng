@@ -20,7 +20,7 @@ static void i686_invalidate_page(virtaddr_t a) {
   __asm__("invlpg (%0)" :: "r"(a) : "memory");
 }
 
-void i686_set_cr3(struct i686_pde *cr3) {
+static void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
           "movl %%eax, %%cr3" :: "m"(cr3));
 }
