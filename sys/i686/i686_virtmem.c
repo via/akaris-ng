@@ -17,10 +17,10 @@ struct i686_pte *kernel_flatpt = (struct i686_pte *)kernel_pts;
 extern int highstart;
 
 static void i686_invalidate_page(virtaddr_t a) {
-  __asm__("invlpg %0" :: "m"(a));
+  __asm__("invlpg (%0)" :: "r"(a) : "memory");
 }
 
-static void i686_set_cr3(struct i686_pde *cr3) {
+void i686_set_cr3(struct i686_pde *cr3) {
   __asm__("movl %0, %%eax\n"
           "movl %%eax, %%cr3" :: "m"(cr3));
 }
@@ -49,6 +49,13 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
     kernel_flatpt[phys_page].phys_addr = phys_page;
     kernel_flatpt[phys_page].present = 1;
     kernel_flatpt[phys_page].writable = 1;
+    kernel_flatpt[phys_page].write_through = 0,
+    kernel_flatpt[phys_page].cache_disable = 0,
+    kernel_flatpt[phys_page].accessed = 0,
+    kernel_flatpt[phys_page].dirty = 0,
+    kernel_flatpt[phys_page].zero = 0,
+    kernel_flatpt[phys_page].global = 0,
+    kernel_flatpt[phys_page].avail = 0,
     i686_invalidate_page((virtaddr_t)(curpage * pg_size));
   } 
   v->identitymap_limit = newend;
@@ -60,12 +67,20 @@ static virtaddr_t i686_brk(struct virtmem *_v, virtaddr_t newend) {
 static void
 i686_set_kernel_pdes(struct i686_pde *pd) {
   unsigned int cur_pde;
+  unsigned int cur_pte;
   for (cur_pde = n_start_pde; cur_pde < n_kernel_pde + n_start_pde;
       ++cur_pde) {
     pd[cur_pde].phys_addr = ((unsigned long)(kernel_pts[cur_pde - 
           n_start_pde]) - (unsigned long)&highstart) >> 12;
     pd[cur_pde].present = 1;
     pd[cur_pde].writable = 1;
+    pd[cur_pde].write_through = 0;
+    pd[cur_pde].cache_disable = 0;
+    pd[cur_pde].accessed = 0;
+    pd[cur_pde].size = 0;
+    pd[cur_pde].zero = 0;
+    pd[cur_pde].global = 0;
+    pd[cur_pde].avail = 0;
   }
 }
 
@@ -74,7 +89,7 @@ struct virtmem *
 i686_virtmem_init(struct kernel *k) {
 
   extern int ebss;
-  i686_virtmem.kernel_pde_list = kernel_pd;
+  i686_virtmem.kernel_pde_list = &kernel_pd[n_start_pde];
   i686_virtmem.virt.cpu = k->bsp;
 
   i686_set_kernel_pdes(kernel_pd);
@@ -138,7 +153,7 @@ i686_virt_to_pte(struct i686_virtmem *v, virtaddr_t addr) {
   n_pde = (pagenum / 1024) - n_start_pde;
 
   assert(n_pde < n_kernel_pde);
-  pte = &((struct i686_pte *)(v->kernel_pde_list[n_pde].phys_addr << 12))[n_pte];
+  pte = &kernel_flatpt[pagenum - (768*1024)];
 
   return pte;
 }
@@ -169,10 +184,18 @@ i686_kernel_map_virt_to_phys(struct virtmem *_v,
   struct i686_virtmem *v = (struct i686_virtmem *)_v;
   struct i686_pte *pte = i686_virt_to_pte(v, addr);
 
-  assert (pte->present = 1);
+  assert (pte->present == 1);
   if (!pte->present)
     return VIRTMEM_NOTPRESENT;  
   
+  pte->writable = 1;
+  pte->write_through = 0;
+  pte->cache_disable = 0;
+  pte->accessed = 0;
+  pte->dirty = 0;
+  pte->zero = 0;
+  pte->global = 0;
+  pte->avail = 0;
   pte->phys_addr = p >> 12;
   i686_invalidate_page(addr);
   return VIRTMEM_SUCCESS;
