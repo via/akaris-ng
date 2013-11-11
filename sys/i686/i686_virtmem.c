@@ -20,12 +20,6 @@ static void i686_invalidate_page(virtaddr_t a) {
   __asm__("invlpg (%0)" :: "r"(a) : "memory");
 }
 
-static void i686_set_cr3(struct i686_pde *cr3) {
-  __asm__("movl %0, %%eax\n"
-          "movl %%eax, %%cr3" :: "m"(cr3));
-}
-
-
 static void i686_set_pte(struct i686_pte *p, physaddr_t addr, int flags) {
 
     p->phys_addr = addr >> 12;
@@ -99,6 +93,20 @@ i686_set_kernel_pdes(struct i686_pde *pd) {
   }
 }
 
+static virtmem_error_t i686_get_context(struct virtmem *v VAR_UNUSED,
+    virtmem_md_context_t *pd) {
+  
+  __asm__("movl %%cr3, %%eax\n"
+          "movl %%eax, %0" :: "m"(pd));
+  return VIRTMEM_SUCCESS;
+}
+
+static virtmem_error_t
+i686_set_context(struct virtmem *v VAR_UNUSED, virtmem_md_context_t pd) {
+  __asm__("movl %0, %%eax\n"
+          "movl %%eax, %%cr3" :: "m"((struct i686_pde *)pd));
+  return VIRTMEM_SUCCESS;
+}
 
 struct virtmem *
 i686_virtmem_init(struct kernel *k) {
@@ -112,7 +120,8 @@ i686_virtmem_init(struct kernel *k) {
   i686_virtmem.identitymap_limit = &highstart;
   i686_brk((struct virtmem*)&i686_virtmem, &ebss);
 
-  i686_set_cr3((struct i686_pde *)((void *)kernel_pd - (void *)&highstart));
+  i686_set_context(&i686_virtmem.virt, (virtmem_md_context_t)
+      ((void *)kernel_pd - (void *)&highstart));
 
   /* thanks to loader, our basic paging is already set up */
 
@@ -240,7 +249,6 @@ static int i686_pagewalk_init(struct i686_pagewalk_context *ctx,
   return 0;
 }
 
-
 static void i686_pagewalk_done(struct i686_pagewalk_context *ctx) {
   virtmem_kernel_free(cpu()->kvirt, ctx->pt);
   virtmem_kernel_free(cpu()->kvirt, ctx->pd);
@@ -345,8 +353,11 @@ struct i686_virtmem i686_virtmem = {
       .user_get_page = i686_user_get_page,
       .user_map_page = i686_user_map_page,
       .user_set_page_flags = i686_user_set_page_flags,
-
       .user_setup_kernelspace = i686_setup_kernelspace,
+
+      .get_context = i686_get_context,
+      .set_context = i686_set_context,
+
     },
   },
 };
