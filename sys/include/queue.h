@@ -35,7 +35,7 @@
 
 
 /*
- * This file defines four types of data structures: singly-linked lists,
+ S* This file defines four types of data structures: singly-linked lists,
  * singly-linked tail queues, lists and tail queues.
  *
  * A singly-linked list is headed by a single forward pointer. The elements
