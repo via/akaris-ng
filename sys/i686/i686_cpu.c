@@ -219,7 +219,7 @@ cpu() {
 
 static physaddr_t i686_pagefault_getaddr() {
   physaddr_t a;
-  __asm__("movl %%cr3, %%eax\n"
+  __asm__("movl %%cr2, %%eax\n"
           "movl %%eax, %0" : "=r"(a)::"eax");
   return a;
 }
