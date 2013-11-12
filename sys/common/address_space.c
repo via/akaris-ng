@@ -128,8 +128,6 @@ address_space_err_t
 common_memory_region_map(struct address_space *as, struct memory_region *mr, physaddr_t paddr) {
 
   unsigned long pgsize = physmem_page_size(cpu()->localmem);
-  virtaddr_t cur;
-  physaddr_t p;
   size_t n_pages;
 
   assert((unsigned long)mr->start % pgsize == 0);
