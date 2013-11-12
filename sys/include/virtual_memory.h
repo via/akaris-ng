@@ -44,6 +44,9 @@ struct virtmem_vfuncs {
   virtmem_error_t (*user_set_page_flags)(struct virtmem *v,
       virtmem_md_context_t c, virtaddr_t vaddr, int page_flags);
   virtmem_error_t (*user_setup_kernelspace)(virtmem_md_context_t);
+  
+  virtmem_error_t (*get_context)(struct virtmem *v, virtmem_md_context_t *);
+  virtmem_error_t (*set_context)(struct virtmem *v, virtmem_md_context_t);
 };
 
 struct virtmem {
@@ -51,6 +54,16 @@ struct virtmem {
   struct cpu *cpu;
 
 };
+
+inline static virtmem_error_t
+virtmem_get_context(struct virtmem *v, virtmem_md_context_t *pd) {
+  return v->v.get_context(v, pd);
+}
+
+inline static virtmem_error_t
+virtmem_set_context(struct virtmem *v, virtmem_md_context_t pd) {
+  return v->v.set_context(v, pd);
+}
 
 inline static virtmem_error_t
 virtmem_kernel_alloc(struct virtmem *v, virtaddr_t *a, unsigned int n_pages) {
