@@ -2,6 +2,7 @@
 #define SYS_I686_CPU_H
 
 #include "kernel.h"
+#include "thread.h"
 #include "physical_memory.h"
 #include "cpu.h"
 
@@ -119,6 +120,7 @@ struct i686_cpu {
   struct i686_gdt_entry gdt[6] __attribute__((aligned(4)));
   struct i686_idt_entry idt[256] __attribute__((aligned(4)));
   struct i686_tss tss __attribute__((aligned(4)));
+  struct scheduler sched;
   long stack[1024];
 
   /* CPUID, GDT */
@@ -141,6 +143,10 @@ struct i686_pagefault_error {
   unsigned int _reserved : 27;
 } __attribute__((__packed__));
 
+struct i686_thread {
+  struct thread t;
+  struct i686_context ctx;
+};
 
 struct i686_cpu *i686_cpu_alloc();
 

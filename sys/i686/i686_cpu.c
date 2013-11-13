@@ -3,6 +3,7 @@
 #include "physical_memory.h"
 #include "strfuncs.h"
 #include "i686_cpu.h"
+#include "scheduler.h"
 #include "slab.h"
 #include "i686_slab.h"
 
@@ -250,6 +251,37 @@ i686_int_entry(struct i686_context *c) {
   while (1);
   return c;
 }
+
+static void i686_scheduler_resume(struct scheduler *s) {
+}
+
+static scheduler_err_t
+i686_thread_alloc(struct scheduler *s, struct thread **t) {
+
+  return SCHED_SUCCESS;
+}
+
+static scheduler_err_t
+i686_thread_destroy(struct scheduler *s, struct thread *t) {
+
+  return SCHED_SUCCESS;
+}
+
+static void i686_scheduler_init(struct scheduler *s) {
+  s->v = (struct scheduler_vfuncs) {
+    .reschedule = common_scheduler_reschedule,
+    .resume = i686_scheduler_resume,
+    .get_current_thread = common_scheduler_get_current_thread,
+    .thread_alloc = i686_thread_alloc,
+    .thread_destroy = i686_thread_destroy,
+    .thread_lookup_by_id = common_scheduler_thread_lookup_by_id,
+  };
+
+  LIST_INIT(&s->runnable);
+  LIST_INIT(&s->waiting);
+  s->current = NULL;
+}
+
 
 
 __asm__(

@@ -4,6 +4,7 @@
 #include "kernel.h"
 #include "physical_memory.h"
 #include "virtual_memory.h"
+#include "scheduler.h"
 #include "slab.h"
 /* Generic structures for CPU */
 
@@ -21,6 +22,7 @@ struct cpu {
   struct physmem *localmem;
   struct kmem_allocator *allocator;
   struct virtmem *kvirt; 
+  struct scheduler *sched; 
   char *model;
 
 

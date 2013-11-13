@@ -38,6 +38,12 @@ struct scheduler {
 
 };
 
+scheduler_err_t common_scheduler_get_current_thread(struct scheduler *,
+    struct thread **t);
+scheduler_err_t common_scheduler_reschedule(struct scheduler *s);
+scheduler_err_t common_scheduler_thread_lookup_by_id(struct scheduler *s, 
+    struct thread **, thread_id);
+
 inline static scheduler_err_t scheduler_reschedule(struct scheduler *s) {
   return s->v.reschedule(s);
 }

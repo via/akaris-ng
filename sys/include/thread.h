@@ -4,7 +4,7 @@
 #include "queue.h"
 
 
-typedef long long thread_id;
+typedef unsigned long thread_id;
 struct cpu;
 struct thread;
 struct address_space;
@@ -22,7 +22,7 @@ typedef enum {
 } thread_err_t;
 
 struct thread_vfuncs {
-  thread_err_t (*init)(struct thread *);
+  thread_err_t (*init)(struct thread *, struct address_space *);
   thread_err_t (*clone)(struct thread *, struct thread *);
 };
 
@@ -40,6 +40,20 @@ struct thread {
   /* Sleeping till when? */
 
 };
+
+thread_err_t common_thread_init(struct thread *, struct address_space *);
+thread_err_t common_thread_clone(struct thread *, struct thread *);
+
+inline static thread_err_t
+thread_init(struct thread *t, struct address_space *s) {
+  return t->v.init(t, s);
+}
+
+inline static thread_err_t
+thread_clone(struct thread *t, struct thread *s) {
+  return t->v.clone(t, s);
+}
+
 
 #endif
 
