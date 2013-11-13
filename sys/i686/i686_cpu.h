@@ -144,6 +144,8 @@ struct i686_pagefault_error {
 
 struct i686_cpu *i686_cpu_alloc();
 
+extern void i686_userspace_return(struct i686_context *);
+
 #define I686_INT_HANDLER_WERR(INTNUM, DEST) \
     extern void i686_int_handler_ ## INTNUM (); \
     __asm__("i686_int_handler_"#INTNUM":\n" \

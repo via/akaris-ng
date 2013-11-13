@@ -269,3 +269,15 @@ __asm__(
     "  call i686_int_entry \n"
     "  jmp 0x0");
 
+__asm__(
+    ".globl i686_userspace_return \n"
+    "i686_userspace_return: \n"
+    "  movl 0x8(%esp), %esp \n"
+    "  pop %gs \n"
+    "  pop %fs \n"
+    "  pop %es \n"
+    "  pop %ds \n"
+    "  popa \n"
+    "  add $0x8, %esp \n"
+    "  iret");
+    
