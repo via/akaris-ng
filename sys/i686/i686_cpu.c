@@ -6,9 +6,12 @@
 #include "scheduler.h"
 #include "slab.h"
 #include "i686_slab.h"
+#include "thread.h"
 
 /* Define entry points for the exception handlers */
 static struct i686_context *i686_int_entry(struct i686_context *) __attribute__((used));
+static struct kmem_cache *thread_cache;
+void i686_scheduler_init(struct scheduler *s);
 
 I686_INT_HANDLER_NOERR(0, i686_int_handler)
 I686_INT_HANDLER_NOERR(1, i686_int_handler)
@@ -185,6 +188,9 @@ static void i686_cpu_init(struct cpu *_cpu) {
   i686_setup_idt(cpu);
   i686_cpu_set_tss_stack(&cpu->tss, (virtaddr_t)cpu->stack, 
       sizeof(cpu->stack));
+  i686_scheduler_init(&cpu->sched);
+  cpu->c.sched = &cpu->sched;
+
 
 }
 
@@ -253,11 +259,26 @@ i686_int_entry(struct i686_context *c) {
 }
 
 static void i686_scheduler_resume(struct scheduler *s) {
+
+  struct i686_thread *t = NULL;
+  scheduler_get_current_thread(s, (struct thread**)t);
+  i686_userspace_return(&t->ctx);
 }
 
 static scheduler_err_t
 i686_thread_alloc(struct scheduler *s, struct thread **t) {
 
+  struct i686_thread *new = kmem_cache_alloc(thread_cache);
+  new->ctx = (struct i686_context) {
+    .gs = 0x20,
+    .fs = 0x20,
+    .es = 0x20,
+    .ds = 0x20,
+    .cs = 0x18,
+    .eflags = 0x0,
+    .ss = 0x20
+  };
+  *t = (struct thread *)new;
   return SCHED_SUCCESS;
 }
 
@@ -267,7 +288,13 @@ i686_thread_destroy(struct scheduler *s, struct thread *t) {
   return SCHED_SUCCESS;
 }
 
-static void i686_scheduler_init(struct scheduler *s) {
+static void i686_init_thread_vfuncs(void *_t) {
+  struct i686_thread *t = (struct i686_thread *)_t;
+  t->t.v.init = common_thread_init;
+  t->t.v.clone = common_thread_clone;
+}
+
+void i686_scheduler_init(struct scheduler *s) {
   s->v = (struct scheduler_vfuncs) {
     .reschedule = common_scheduler_reschedule,
     .resume = i686_scheduler_resume,
@@ -280,6 +307,10 @@ static void i686_scheduler_init(struct scheduler *s) {
   LIST_INIT(&s->runnable);
   LIST_INIT(&s->waiting);
   s->current = NULL;
+
+  thread_cache = kmem_alloc(cpu()->allocator);
+  kmem_cache_init(cpu()->allocator, thread_cache, cpu(), "thread", 
+      sizeof(struct i686_thread), i686_init_thread_vfuncs, NULL);
 }
 
 

@@ -15,6 +15,7 @@ common_scheduler_reschedule(struct scheduler *s) {
    *
    */
 
+  s->current = LIST_FIRST(&s->runnable);
 
   return SCHED_SUCCESS;
 }
