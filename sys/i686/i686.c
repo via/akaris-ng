@@ -73,6 +73,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
 
+  kmem_init(i686_kernel.bsp->allocator);
   i686_kernel.bsp->v.init(i686_kernel.bsp);
 
   i686_debug("Location GDT entry: %x\n", ((struct i686_cpu *)i686_kernel.bsp)->gdt);
@@ -91,7 +92,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   strcpy(s, "This shows the validity of this memory");
   i686_debug("%x contains: %s\n", a, s);
 
-  kmem_init(i686_kernel.bsp->allocator);
+//  kmem_init(i686_kernel.bsp->allocator);
   struct kmem_cache *s1 = kmem_alloc(i686_kernel.bsp->allocator);
   kmem_cache_init(i686_kernel.bsp->allocator,
       s1, i686_kernel.bsp, "test", 128, NULL, NULL);
@@ -114,7 +115,12 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   address_space_init_region(as, mr, (virtaddr_t)0x100000, 0xC0000);
   i686_debug("%d\n", address_space_init_region(as, mr2, (virtaddr_t)0x300000, 0xC0000));
 
-
+  struct thread *thr1;
+  scheduler_thread_alloc(cpu()->sched, &thr1);
+  thread_init(thr1, as);
+  thr1->state = THREAD_RUNNABLE;
+  scheduler_thread_add(cpu()->sched, thr1);
+  scheduler_reschedule(cpu()->sched);
   while (1);
 
 

@@ -300,6 +300,7 @@ void i686_scheduler_init(struct scheduler *s) {
     .resume = i686_scheduler_resume,
     .get_current_thread = common_scheduler_get_current_thread,
     .thread_alloc = i686_thread_alloc,
+    .thread_add = common_scheduler_thread_add,
     .thread_destroy = i686_thread_destroy,
     .thread_lookup_by_id = common_scheduler_thread_lookup_by_id,
   };
