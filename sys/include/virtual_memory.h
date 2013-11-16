@@ -32,13 +32,13 @@ struct virtmem_vfuncs {
       unsigned int n_pages);
   virtmem_error_t (*kernel_free)(struct virtmem *v, virtaddr_t);
   virtmem_error_t (*kernel_virt_to_phys)(struct virtmem *v, 
-      struct physmem_page **p, virtaddr_t addr);
+      physaddr_t *p, virtaddr_t addr);
   virtmem_error_t (*kernel_map_virt_to_phys)(struct virtmem *v, 
       physaddr_t p, virtaddr_t addr);
   virtaddr_t (*kernel_brk)(struct virtmem *v, virtaddr_t amt);
 
   virtmem_error_t (*user_get_page)(struct virtmem *v,
-      virtmem_md_context_t c, physaddr_t *paddr, virtaddr_t vaddr);
+      virtmem_md_context_t c, physaddr_t *paddr, const virtaddr_t vaddr);
   virtmem_error_t (*user_map_page)(struct virtmem *v,
       virtmem_md_context_t c, virtaddr_t vaddr, physaddr_t paddr);
   virtmem_error_t (*user_set_page_flags)(struct virtmem *v,
@@ -47,6 +47,11 @@ struct virtmem_vfuncs {
   
   virtmem_error_t (*get_context)(struct virtmem *v, virtmem_md_context_t *);
   virtmem_error_t (*set_context)(struct virtmem *v, virtmem_md_context_t);
+
+  virtmem_error_t (*copy_user_to_kernel)(struct virtmem *v, void *dst, 
+      virtmem_md_context_t, const void *src, size_t len);
+  virtmem_error_t (*copy_kernel_to_user)(struct virtmem *v, virtmem_md_context_t, void *dst, 
+      const void *src, size_t len);
 };
 
 struct virtmem {
@@ -54,6 +59,23 @@ struct virtmem {
   struct cpu *cpu;
 
 };
+
+virtmem_error_t common_virtmem_copy_user_to_kernel(struct virtmem *, void *,
+    virtmem_md_context_t, const void *, size_t len);
+virtmem_error_t common_virtmem_copy_kernel_to_user(struct virtmem *, 
+    virtmem_md_context_t, void *dst, const void *src, size_t len);
+
+inline static virtmem_error_t
+virtmem_copy_user_to_kernel(struct virtmem *v, void *dst, 
+    virtmem_md_context_t src_ctx, const void *src, size_t len) {
+  return v->v.copy_user_to_kernel(v, dst, src_ctx, src, len);
+}
+
+inline static virtmem_error_t
+virtmem_copy_kernel_to_user(struct virtmem *v, virtmem_md_context_t *dst_pd, void *dst, 
+    const void *src, size_t len) {
+  return v->v.copy_kernel_to_user(v, dst_pd, dst, src, len);
+}
 
 inline static virtmem_error_t
 virtmem_get_context(struct virtmem *v, virtmem_md_context_t *pd) {
@@ -76,7 +98,7 @@ virtmem_kernel_free(struct virtmem *v, virtaddr_t addr) {
 }
 
 inline static virtmem_error_t
-virtmem_kernel_virt_to_phys(struct virtmem *v, struct physmem_page **p, 
+virtmem_kernel_virt_to_phys(struct virtmem *v, physaddr_t *p, 
     virtaddr_t addr) {
   return v->v.kernel_virt_to_phys(v, p, addr);
 }
@@ -94,7 +116,7 @@ virtmem_brk(struct virtmem *v, virtaddr_t amt) {
 
 inline static virtmem_error_t
 virtmem_user_get_page(struct virtmem *v, virtmem_md_context_t c,
-    physaddr_t *p, virtaddr_t vaddr) {
+    physaddr_t *p, const virtaddr_t vaddr) {
   return v->v.user_get_page(v, c, p, vaddr);
 }
 

@@ -3,7 +3,9 @@
 
 
 struct test_vmem_page {
-    physaddr_t *physaddr;
+    virtaddr_t virtaddr;
+    physaddr_t physaddr;
+    unsigned int used : 1;
 
 };
 
@@ -12,6 +14,8 @@ struct test_virtmem {
     struct test_vmem_page *pages;
     int n_pages;
 };
+
+void check_initialize_virtmem_tests(TCase *t);
 
 #endif
 

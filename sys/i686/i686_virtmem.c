@@ -6,6 +6,7 @@
 #include "types.h"
 #include "strfuncs.h"
 #include "assert.h"
+#include "math.h"
 struct i686_virtmem i686_virtmem;
 
 static const unsigned int n_kernel_pde = 256;
@@ -184,7 +185,7 @@ i686_virt_to_pte(struct i686_virtmem *v, virtaddr_t addr) {
 
 static virtmem_error_t
 i686_kernel_virt_to_phys(struct virtmem *_v,
-    struct physmem_page **p, virtaddr_t addr) {
+    physaddr_t *p, virtaddr_t addr) {
 
   struct i686_virtmem *v = (struct i686_virtmem *)_v;
   physaddr_t paddr;
@@ -195,7 +196,7 @@ i686_kernel_virt_to_phys(struct virtmem *_v,
     return VIRTMEM_NOTPRESENT;
   paddr = pte->phys_addr << 12; /*Convert to address */
   if (p)
-    *p = physmem_phys_to_page(kernel()->phys, paddr);
+    *p = paddr;
 
   return VIRTMEM_SUCCESS;
 }
@@ -291,7 +292,7 @@ i686_setup_kernelspace(virtmem_md_context_t ctx) {
 
 static virtmem_error_t 
 i686_user_get_page(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
-    physaddr_t *p, virtaddr_t vaddr) {
+    physaddr_t *p, const virtaddr_t vaddr) {
   struct i686_pagewalk_context ctx;
   struct i686_pte *l;
 
@@ -340,6 +341,7 @@ i686_user_set_page_flags(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
 
   return VIRTMEM_SUCCESS;
 }
+
 
 struct i686_virtmem i686_virtmem = {
   .virt = {

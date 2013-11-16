@@ -11,7 +11,7 @@
 static struct address_space as;
 static struct memory_region mr1, mr2, mr3;
 
-mock_call_list virtmem_mock_calls;
+static mock_call_list virtmem_mock_calls;
 
 
 START_TEST (check_memory_region_compare_to_location) {

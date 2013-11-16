@@ -3,6 +3,7 @@
 #include "cpu.h"
 #include "test_physmem.h"
 #include "test_address_space.h"
+#include "test_vmem.h"
 #include "test_slab.h"
 
 #include <stdio.h>
@@ -34,6 +35,11 @@ main_suite() {
   TCase *tc_physmem = tcase_create("Physmem");
   check_initialize_physmem_tests(tc_physmem);
   suite_add_tcase(s, tc_physmem);
+
+  TCase *tc_vm = tcase_create("Virtmem");
+  check_initialize_virtmem_tests(tc_vm);
+  suite_add_tcase(s, tc_vm);
+
 
   TCase *tc_slab = tcase_create("SLAB Allocator");
   check_initialize_slab_tests(tc_slab);
