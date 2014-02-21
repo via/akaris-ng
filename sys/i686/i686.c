@@ -72,7 +72,6 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_kernel.bsp->kvirt = i686_virtmem_init(&i686_kernel);
   i686_kernel.phys = i686_physmem_alloc(&i686_kernel, info);
 
-
   kmem_init(i686_kernel.bsp->allocator);
   i686_kernel.bsp->v.init(i686_kernel.bsp);
 
@@ -112,6 +111,12 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
   
   address_space_init_region(as, mr, (virtaddr_t)0x100000, 0xC0000);
+  memory_region_map(as, mr, NULL);
+
+  const char *teststr = "This is a test string to be copied to userspace.";
+  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void*)0x100000, 
+      (const void *)teststr, strlen(teststr) + 1);
+
 
   struct thread *thr1;
   scheduler_thread_alloc(cpu()->sched, &thr1);

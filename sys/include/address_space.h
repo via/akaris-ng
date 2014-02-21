@@ -111,6 +111,11 @@ static inline address_space_err_t address_space_init_region(
   return as->v.init_region(as, mr, start, len);
 }
 
+static inline address_space_err_t memory_region_map(struct address_space *as,
+    struct memory_region *mr, physaddr_t p) {
+  return as->v.map_region(as, mr, p);
+}
+
 
 #ifdef UNITTEST
 /* non-static wrappers for static functions needing testing */

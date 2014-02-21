@@ -124,6 +124,8 @@ struct virtmem_vfuncs test_virtmem_vfuncs = {
   .kernel_free = test_kernel_free,
   .kernel_virt_to_phys = test_kernel_virt_to_phys,
   .kernel_map_virt_to_phys = test_kernel_map_virt_to_phys,
+  .copy_user_to_kernel = common_virtmem_copy_user_to_kernel,
+  .copy_kernel_to_user = common_virtmem_copy_kernel_to_user,
 };
 
 

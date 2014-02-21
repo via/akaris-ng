@@ -72,7 +72,7 @@ virtmem_copy_user_to_kernel(struct virtmem *v, void *dst,
 }
 
 inline static virtmem_error_t
-virtmem_copy_kernel_to_user(struct virtmem *v, virtmem_md_context_t *dst_pd, void *dst, 
+virtmem_copy_kernel_to_user(struct virtmem *v, virtmem_md_context_t dst_pd, void *dst, 
     const void *src, size_t len) {
   return v->v.copy_kernel_to_user(v, dst_pd, dst, src, len);
 }

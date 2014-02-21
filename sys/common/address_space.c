@@ -195,6 +195,7 @@ common_address_space_init_region(struct address_space *as,
     struct memory_region *mr, virtaddr_t start, size_t len) {
   if (start == 0) {
     /* generate random address */  
+    return AS_INVALID; /* temporarily */
   }
   long pgsize = physmem_page_size(cpu()->localmem);
   start = start - ((long)start % pgsize);
