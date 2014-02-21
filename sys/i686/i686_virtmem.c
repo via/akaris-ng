@@ -360,6 +360,9 @@ struct i686_virtmem i686_virtmem = {
       .get_context = i686_get_context,
       .set_context = i686_set_context,
 
+      .copy_user_to_kernel = common_virtmem_copy_user_to_kernel,
+      .copy_kernel_to_user = common_virtmem_copy_kernel_to_user
+
     },
   },
 };

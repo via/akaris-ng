@@ -63,7 +63,7 @@ copy_alt_user_from_kernel(struct virtmem *v, virtmem_md_context_t dst_ctx,
     int amt_copied;
     virtmem_user_get_page(v, dst_ctx, &dst_phys, (const virtaddr_t)dst);
     virtmem_kernel_map_virt_to_phys(v, dst_phys, mapping);
-    amt_copied = copy_partial_page_from_user(dst, src, len);
+    amt_copied = copy_partial_page_to_user(dst, src, len);
 
     len -= amt_copied;
     src += amt_copied;

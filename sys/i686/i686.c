@@ -114,8 +114,12 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   memory_region_map(as, mr, NULL);
 
   const char *teststr = "This is a test string to be copied to userspace.";
-  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void*)0x100000, 
+  char testcpybuf[128];
+  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void *)0x100000, 
       (const void *)teststr, strlen(teststr) + 1);
+  virtmem_copy_user_to_kernel(i686_kernel.bsp->kvirt, (void *)&testcpybuf, 
+      as->pd, (const void *)0x100000, strlen(teststr) + 1);
+  i686_debug("testcpybuf contains '%s'\n", testcpybuf);
 
 
   struct thread *thr1;
