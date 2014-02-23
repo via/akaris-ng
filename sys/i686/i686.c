@@ -111,16 +111,16 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
   virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
   
-  e3 = address_space_init_region(as, mr, (virtaddr_t)0x1000000, 0x1000);
+  e3 = address_space_init_region(as, mr, (virtaddr_t)0x1000000, 0x2000);
   memory_region_map(as, mr, NULL);
 
   const char *teststr = "This is a test string to be copied to userspace.";
   char testcpybuf[128];
   char opcodes[] = {0xeb, 0xfe};
-  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void *)0x1000000, 
+  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void *)0x1000ffc, 
       (const void *)teststr, strlen(teststr) + 1);
   virtmem_copy_user_to_kernel(i686_kernel.bsp->kvirt, (void *)&testcpybuf, 
-      as->pd, (const void *)0x1000000, strlen(teststr) + 1);
+      as->pd, (const void *)0x1000ffc, strlen(teststr) + 1);
   i686_debug("testcpybuf contains '%s'\n", testcpybuf);
   virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void *)0x1000000, 
       (const void *)opcodes, 2);
