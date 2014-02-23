@@ -33,7 +33,7 @@ static void i686_address_space_ctor(void *_as) {
   if (virtmem_kernel_alloc(cpu()->kvirt, &vaddr, 1) != VIRTMEM_SUCCESS)
     return;
   virtmem_kernel_map_virt_to_phys(cpu()->kvirt, p, vaddr);
-  memset(vaddr, 0, 4096);
+  memset(vaddr, 0, physmem_page_size(cpu()->localmem));
   virtmem_kernel_free(cpu()->kvirt, vaddr);
 }
 

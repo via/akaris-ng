@@ -230,7 +230,7 @@ static int i686_initialize_pde(struct i686_pde *pde) {
   if (virtmem_kernel_alloc(cpu()->kvirt, &vaddr, 1) != VIRTMEM_SUCCESS)
     return -1;
   virtmem_kernel_map_virt_to_phys(cpu()->kvirt, pde_phys, vaddr);
-  memset(vaddr, 0, 4096);
+  memset(vaddr, 0, physmem_page_size(cpu()->localmem));
   virtmem_kernel_free(cpu()->kvirt, vaddr);
 
   i686_set_pde(pde,  pde_phys, I686_PAGE_PRESENT | I686_PAGE_WRITABLE |
