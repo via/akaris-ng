@@ -260,21 +260,21 @@ static struct i686_pte *
 i686_pagewalk(struct i686_pagewalk_context *ctx, virtaddr_t addr) {
   long pgsize = physmem_page_size(cpu()->localmem);
   long ptsize = pgsize * 1024;
-  long offset = (long)addr % ptsize;
-  long pdoffset = offset / pgsize;
+  long pdindex = (unsigned long)addr / ptsize;
+  long ptindex = ((unsigned long)addr % ptsize) / pgsize;
   
-  if (ctx->pd[pdoffset].present == 0) {
+  if (ctx->pd[pdindex].present == 0) {
     /* PDE doesn't exist, create one */
-    i686_initialize_pde(&ctx->pd[pdoffset]);
+    i686_initialize_pde(&ctx->pd[pdindex]);
   }
 
-  if (addr - offset != ctx->pagestart) {
-    physaddr_t ptaddr = ctx->pd[pdoffset].phys_addr * pgsize;
+  if (pdindex * ptsize + ptindex != ctx->pagestart) {
+    physaddr_t ptaddr = ctx->pd[pdindex].phys_addr * pgsize;
     virtmem_kernel_map_virt_to_phys(cpu()->kvirt, ptaddr, ctx->pt);
-    ctx->pagestart = addr - offset;
+    ctx->pagestart = pdindex * ptsize + ptindex;
   }
 
-  return &ctx->pt[offset / physmem_page_size(cpu()->localmem)];
+  return &ctx->pt[ptindex];
 
 }
 

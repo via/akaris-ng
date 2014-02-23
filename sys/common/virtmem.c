@@ -10,10 +10,12 @@
  * lowest 
  */
 static int
-copy_partial_page_from_user(void *dst, const void *src, size_t len) {
+copy_partial_page_from_user(void *dst, const void *src, virtaddr_t mapping, 
+    size_t len) {
   int pgsize = physmem_page_size(cpu()->localmem);
   int copylen = minl(len, pgsize - ((const unsigned long)src % pgsize));
-  memcpy(dst, src, copylen);
+  virtaddr_t mapping_start = (virtaddr_t)(((unsigned long)src % pgsize) + (unsigned long)mapping);
+  memcpy(dst, mapping_start, copylen);
   return copylen;
 }
 
@@ -21,10 +23,13 @@ copy_partial_page_from_user(void *dst, const void *src, size_t len) {
  * Copies from kernelspace to a page-size window of userspace.
  */
 static int
-copy_partial_page_to_user(void *dst, const void *src, size_t len) {
+copy_partial_page_to_user(void *dst, const void *src, virtaddr_t mapping, 
+    size_t len) {
   int pgsize = physmem_page_size(cpu()->localmem);
   int copylen = minl(len, pgsize - ((const unsigned long)dst % pgsize));
-  memcpy(dst, src, copylen);
+  virtaddr_t mapping_start = (virtaddr_t)(((const unsigned long)dst % pgsize) +
+      (unsigned long)mapping);
+  memcpy(mapping_start, src, copylen);
   return copylen;
 }
 
@@ -40,7 +45,7 @@ copy_alt_user_to_kernel(struct virtmem *v, void *dst,
     int amt_copied;
     virtmem_user_get_page(v, src_ctx, &src_phys, (const virtaddr_t)src);
     virtmem_kernel_map_virt_to_phys(v, src_phys, mapping);
-    amt_copied = copy_partial_page_from_user(dst, src, len);
+    amt_copied = copy_partial_page_from_user(dst, src, mapping, len);
 
     len -= amt_copied;
     src += amt_copied;
@@ -63,7 +68,7 @@ copy_alt_user_from_kernel(struct virtmem *v, virtmem_md_context_t dst_ctx,
     int amt_copied;
     virtmem_user_get_page(v, dst_ctx, &dst_phys, (const virtaddr_t)dst);
     virtmem_kernel_map_virt_to_phys(v, dst_phys, mapping);
-    amt_copied = copy_partial_page_to_user(dst, src, len);
+    amt_copied = copy_partial_page_to_user(dst, src, mapping, len);
 
     len -= amt_copied;
     src += amt_copied;

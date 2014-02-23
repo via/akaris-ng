@@ -54,10 +54,7 @@ struct i686_virtmem {
 extern struct i686_pde kernel_pd[1024] __attribute__((aligned));
 extern struct i686_pte kernel_pts[256][1024] __attribute__((aligned(4096)));
 
-
 struct virtmem *i686_virtmem_init(struct kernel *kernel);
-
-
 
 #endif
 
