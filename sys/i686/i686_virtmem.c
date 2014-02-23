@@ -24,30 +24,30 @@ static void i686_invalidate_page(virtaddr_t a) {
 static void i686_set_pte(struct i686_pte *p, physaddr_t addr, int flags) {
 
     p->phys_addr = addr >> 12;
-    p->present = flags & I686_PAGE_PRESENT;
-    p->writable = flags & I686_PAGE_WRITABLE;
-    p->write_through = flags & I686_PAGE_WRITETHROUGH; 
-    p->cache_disable = flags & I686_PAGE_CACHEDISABLE;
-    p->user = flags & I686_PAGE_USER;
+    p->present = bittestl(flags, I686_PAGE_PRESENT);
+    p->writable = bittestl(flags, I686_PAGE_WRITABLE);
+    p->write_through = bittestl(flags, I686_PAGE_WRITETHROUGH);
+    p->cache_disable = bittestl(flags, I686_PAGE_CACHEDISABLE);
+    p->user = bittestl(flags, I686_PAGE_USER);
     p->accessed = 0;
     p->dirty = 0;
     p->zero = 0;
-    p->global = flags & I686_PAGE_GLOBAL;
+    p->global = bittestl(flags, I686_PAGE_GLOBAL);
     p->avail = 0;
 }
 
 static void i686_set_pde(struct i686_pde *p, physaddr_t loc, int flags) {
 
     p->phys_addr = loc >> 12;
-    p->present = flags & I686_PAGE_PRESENT;
-    p->writable = flags & I686_PAGE_WRITABLE;
-    p->write_through = flags & I686_PAGE_WRITETHROUGH;
-    p->cache_disable = flags & I686_PAGE_CACHEDISABLE;
-    p->user = flags & I686_PAGE_USER;
+    p->present = bittestl(flags, I686_PAGE_PRESENT);
+    p->writable = bittestl(flags, I686_PAGE_WRITABLE);
+    p->write_through = bittestl(flags, I686_PAGE_WRITETHROUGH);
+    p->cache_disable = bittestl(flags, I686_PAGE_CACHEDISABLE);
+    p->user = bittestl(flags, I686_PAGE_USER);
     p->accessed = 0;
     p->size = 0;
     p->zero = 0;
-    p->global = flags & I686_PAGE_GLOBAL;
+    p->global = bittestl(flags, I686_PAGE_GLOBAL);
     p->avail = 0;
 }
 
@@ -149,6 +149,7 @@ i686_kernel_alloc(struct virtmem *v VAR_UNUSED, virtaddr_t *addr,
     pte = &kernel_flatpt[pgindex];
     if (pte->present == 0) {
       pte->present = 1;
+      pte->writable = 1;
       *addr = pgindex * pg_size + (virtaddr_t)&highstart;
       i686_invalidate_page(*addr);
       return VIRTMEM_SUCCESS;
@@ -332,8 +333,8 @@ i686_user_set_page_flags(struct virtmem *v VAR_UNUSED, virtmem_md_context_t c,
 
   i686_pagewalk_init(&ctx, c);
   l = i686_pagewalk(&ctx, vaddr);
-  l->writable = flags & VIRTMEM_PAGE_WRITABLE;
-  l->user = flags & VIRTMEM_PAGE_READABLE;
+  l->writable = bittestl(flags, VIRTMEM_PAGE_WRITABLE);
+  l->user = bittestl(flags, VIRTMEM_PAGE_READABLE);
   l->present = 1;
   /* Currently nothing to prevent execution of nonexecute pages for i686 */
   i686_pagewalk_done(&ctx);
