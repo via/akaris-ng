@@ -68,8 +68,10 @@ common_memory_region_set_flags(struct memory_region *mr, int writable,
     int executable) {
   if (!mr)
     return AS_INVALID;
+#if 0
   if (executable & writable)
     return AS_INVALID;
+#endif /* TODO: re-enable for W^X */
   mr->writable = writable;
   mr->executable = executable;
   return AS_SUCCESS;
