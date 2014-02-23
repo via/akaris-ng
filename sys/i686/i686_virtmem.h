@@ -30,7 +30,7 @@ struct i686_pte {
 } __attribute__((__packed__));
 
 struct i686_pagewalk_context {
-  virtaddr_t pagestart;
+  long pagestart;
   struct i686_pte *pt;
   struct i686_pde *pd;
 };

@@ -97,6 +97,8 @@ void *common_kmem_cache_alloc(struct kmem_cache *cache) {
     SLIST_INSERT_HEAD(&cache->slabs_full, s, slabs);
   }
   
+  memset(obj, 0, cache->objsize);
+
   if (cache->ctor != NULL) {
     cache->ctor(obj);
   }

@@ -221,9 +221,17 @@ i686_kernel_map_virt_to_phys(struct virtmem *_v,
 
 static int i686_initialize_pde(struct i686_pde *pde) {
   physaddr_t pde_phys;
+  virtaddr_t vaddr;
 
   if (physmem_page_alloc(cpu()->localmem, 0, &pde_phys) != PHYSMEM_SUCCESS)
     return -1;
+
+  /* Wipe out pt before using */
+  if (virtmem_kernel_alloc(cpu()->kvirt, &vaddr, 1) != VIRTMEM_SUCCESS)
+    return -1;
+  virtmem_kernel_map_virt_to_phys(cpu()->kvirt, pde_phys, vaddr);
+  memset(vaddr, 0, 4096);
+  virtmem_kernel_free(cpu()->kvirt, vaddr);
 
   i686_set_pde(pde,  pde_phys, I686_PAGE_PRESENT | I686_PAGE_WRITABLE |
       I686_PAGE_USER);
@@ -235,7 +243,7 @@ static int i686_pagewalk_init(struct i686_pagewalk_context *ctx,
     struct i686_pde *physpd) {
   virtaddr_t adr;
 
-  ctx->pagestart = (virtaddr_t)0;
+  ctx->pagestart = 0;
 
   if (virtmem_kernel_alloc(cpu()->kvirt, &adr, 1) != VIRTMEM_SUCCESS)
     return -1;
