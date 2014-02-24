@@ -261,7 +261,7 @@ i686_int_entry(struct i686_context *c) {
 static void i686_scheduler_resume(struct scheduler *s) {
 
   struct i686_thread *t = NULL;
-  scheduler_get_current_thread(s, (struct thread**)t);
+  scheduler_get_current_thread(s, (struct thread **)&t);
   i686_userspace_return(&t->ctx);
 }
 
@@ -270,13 +270,14 @@ i686_thread_alloc(struct scheduler *s, struct thread **t) {
 
   struct i686_thread *new = kmem_cache_alloc(thread_cache);
   new->ctx = (struct i686_context) {
-    .gs = 0x20,
-    .fs = 0x20,
-    .es = 0x20,
-    .ds = 0x20,
-    .cs = 0x18,
+    .gs = 0x23,
+    .fs = 0x23,
+    .es = 0x23,
+    .ds = 0x23,
+    .cs = 0x1B,
     .eflags = 0x0,
-    .ss = 0x20
+    .ss = 0x23,
+    .eip = 0x1000000
   };
   *t = (struct thread *)new;
   return SCHED_SUCCESS;
@@ -336,7 +337,7 @@ __asm__(
 __asm__(
     ".globl i686_userspace_return \n"
     "i686_userspace_return: \n"
-    "  movl 0x8(%esp), %esp \n"
+    "  movl 0x4(%esp), %esp \n"
     "  pop %gs \n"
     "  pop %fs \n"
     "  pop %es \n"
