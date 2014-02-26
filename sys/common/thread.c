@@ -1,3 +1,4 @@
+#include "assert.h"
 #include "cpu.h"
 #include "address_space.h"
 #include "thread.h"
@@ -12,7 +13,9 @@ thread_err_t common_thread_init(struct thread *t, struct address_space *as) {
   return THREAD_SUCCESS;
 }
 
-thread_err_t common_thread_clone(struct thread *t, struct thread *src) {
+thread_err_t common_thread_clone(struct thread *t VAR_UNUSED, 
+    struct thread *src VAR_UNUSED) {
+  assert(0); /* Not implemented yet */
 
   return THREAD_SUCCESS;
 }

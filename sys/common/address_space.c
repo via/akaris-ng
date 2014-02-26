@@ -68,7 +68,7 @@ common_memory_region_set_flags(struct memory_region *mr, int writable,
     int executable) {
   if (!mr)
     return AS_INVALID;
-#if 0
+#ifndef NO_W_X
   if (executable & writable)
     return AS_INVALID;
 #endif /* TODO: re-enable for W^X */
@@ -78,9 +78,10 @@ common_memory_region_set_flags(struct memory_region *mr, int writable,
 }
 
 address_space_err_t 
-common_memory_region_clone(struct address_space *as, 
-    struct memory_region *dst, struct memory_region *src, int cow) {
-
+common_memory_region_clone(struct address_space *as VAR_UNUSED, 
+    struct memory_region *dst VAR_UNUSED, 
+    struct memory_region *src VAR_UNUSED, int cow VAR_UNUSED) {
+  assert(0); /* Not implemented yet */
   return AS_SUCCESS;
 }
 
@@ -150,17 +151,20 @@ common_memory_region_map(struct address_space *as, struct memory_region *mr, phy
 }
 
 void 
-common_memory_region_cow_fault(struct memory_region *mr, int location) {
-
+common_memory_region_cow_fault(struct memory_region *mr VAR_UNUSED, 
+    int location VAR_UNUSED) {
+  assert(0); /* Not implemented yet */
 }
 
 void 
-common_memory_region_fault(struct memory_region *mr, int location) {
-
+common_memory_region_fault(struct memory_region *mr VAR_UNUSED, 
+    int location VAR_UNUSED) {
+  assert(0); /* Not implemented yet */
 }
 
 address_space_err_t 
-common_address_space_destroy(struct address_space *as) {
+common_address_space_destroy(struct address_space *as VAR_UNUSED) {
+  assert(0); /* Not implemented yet */
   return AS_SUCCESS;
 }
 

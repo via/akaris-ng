@@ -3,7 +3,7 @@ ARCH=i686
 CC=${ARCH}-elf-gcc
 LD=${ARCH}-elf-ld
 AS=${ARCH}-elf-as
-CFLAGS=-ffreestanding -nostdlib -fno-builtin -fstack-protector
+CFLAGS=-ffreestanding -nostdlib -fno-builtin -fstack-protector -DNO_W_X
 #CFLAGS=-ffreestanding -nostdlib -fno-builtin -fstack-protector -fno-use-linker-plugin
 SRCS+= ${SRCROOT}/i686/bootvideo.c \
 			 ${SRCROOT}/i686/i686_tty.c \

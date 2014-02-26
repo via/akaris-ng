@@ -4,7 +4,8 @@
 struct mocked_call *
 mock_call_alloc(const char *name) {
   struct mocked_call *m = malloc(sizeof(struct mocked_call));
-  m->name = strdup(name);
+  m->name = (char *)malloc(strlen(name) + 1);
+  strcpy(m->name, name);
   STAILQ_INIT(&m->params);
   return m;
 }
@@ -165,8 +166,10 @@ static struct mocked_call_parameter *mock_ptr(void *a) {
 }
 
 static struct mocked_call_parameter *mock_str(const char *a) {
-  struct mocked_call_parameter *newparam = malloc(sizeof(struct mocked_call_parameter));
-  *newparam = MOCK_STR(strdup(a));
+  struct mocked_call_parameter *newparam = (struct mocked_call_parameter *)
+    malloc(sizeof(struct mocked_call_parameter));
+  char *param = (char *)malloc(strlen(a) + 1);
+  *newparam = MOCK_STR(param);
   return newparam;
 }
 

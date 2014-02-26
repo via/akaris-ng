@@ -79,7 +79,6 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
   virtaddr_t a;
   physaddr_t p;
-  address_space_err_t e3;
   virtmem_error_t e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
   assert(e1 == VIRTMEM_SUCCESS);
   physmem_error_t e2 = physmem_page_alloc(i686_kernel.bsp->localmem, 0, &p);
@@ -92,7 +91,6 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   strcpy(s, "This shows the validity of this memory");
   i686_debug("%x contains: %s\n", a, s);
 
-//  kmem_init(i686_kernel.bsp->allocator);
   struct kmem_cache *s1 = kmem_alloc(i686_kernel.bsp->allocator);
   kmem_cache_init(i686_kernel.bsp->allocator,
       s1, i686_kernel.bsp, "test", 128, NULL, NULL);
@@ -104,14 +102,14 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
 
   i686_address_space_init();
   struct address_space *as;
-  struct memory_region *mr, *mr2;
+  struct memory_region *mr;
   address_space_alloc(&as);
   memory_region_alloc(&mr);
 
   e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
   virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
   
-  e3 = address_space_init_region(as, mr, (virtaddr_t)0x1000000, 0x2000);
+  address_space_init_region(as, mr, (virtaddr_t)0x1000000, 0x2000);
   memory_region_set_flags(mr, 1, 1);
   memory_region_map(as, mr, NULL);
 
@@ -137,9 +135,5 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   virtmem_set_context(i686_kernel.bsp->kvirt, as->pd);
   scheduler_resume(cpu()->sched);
   while (1);
-
-
-
-
 }
 

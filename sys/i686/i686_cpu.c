@@ -266,7 +266,7 @@ static void i686_scheduler_resume(struct scheduler *s) {
 }
 
 static scheduler_err_t
-i686_thread_alloc(struct scheduler *s, struct thread **t) {
+i686_thread_alloc(struct scheduler *s VAR_UNUSED, struct thread **t) {
 
   struct i686_thread *new = kmem_cache_alloc(thread_cache);
   new->ctx = (struct i686_context) {
@@ -284,8 +284,10 @@ i686_thread_alloc(struct scheduler *s, struct thread **t) {
 }
 
 static scheduler_err_t
-i686_thread_destroy(struct scheduler *s, struct thread *t) {
+i686_thread_destroy(struct scheduler *s VAR_UNUSED, 
+    struct thread *t VAR_UNUSED) {
 
+  assert(0); /* Not implemented */
   return SCHED_SUCCESS;
 }
 
