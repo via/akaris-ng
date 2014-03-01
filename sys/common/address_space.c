@@ -4,6 +4,7 @@
 #include "virtual_memory.h"
 #include "physical_memory.h"
 #include "address_space.h"
+#include "math.h"
 
 static struct kmem_cache *as_cache;
 static struct kmem_cache *mr_cache;
@@ -64,8 +65,10 @@ common_memory_region_set_location(struct memory_region *mr,
 }
 
 address_space_err_t 
-common_memory_region_set_flags(struct memory_region *mr, int writable, 
-    int executable) {
+common_memory_region_set_flags(struct memory_region *mr, 
+    address_space_perm_t flags) {
+  int executable = bittestl(flags, AS_EXECUTABLE);
+  int writable = bittestl(flags, AS_WRITABLE);
   if (!mr)
     return AS_INVALID;
 #ifndef NO_W_X

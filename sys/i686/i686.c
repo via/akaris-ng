@@ -110,7 +110,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
   
   address_space_init_region(as, mr, (virtaddr_t)0x1000000, 0x2000);
-  memory_region_set_flags(mr, 1, 1);
+  memory_region_set_flags(mr, AS_EXECUTABLE | AS_WRITABLE);
   memory_region_map(as, mr, NULL);
 
   const char *teststr = "This is a test string to be copied to userspace.";

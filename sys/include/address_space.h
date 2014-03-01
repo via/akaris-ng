@@ -18,11 +18,17 @@ typedef enum {
   AS_USED, /* Desired location conflicts with existing region */
 } address_space_err_t;
 
+typedef enum {
+  AS_READABLE = 1,
+  AS_WRITABLE = 2,
+  AS_EXECUTABLE = 4,
+} address_space_perm_t;
+
 struct memory_region_vfuncs {
   address_space_err_t (*set_location) (struct memory_region *, 
       virtaddr_t start, size_t len);
-  address_space_err_t (*set_flags) (struct memory_region *, int writable, 
-      int executable);
+  address_space_err_t (*set_flags) (struct memory_region *, 
+      address_space_perm_t flags);
   void (*fault)(struct memory_region *, virtaddr_t location);
 
 };
@@ -70,7 +76,7 @@ struct address_space {
 address_space_err_t common_memory_region_set_location(
     struct memory_region *, virtaddr_t start, size_t len);
 address_space_err_t common_memory_region_set_flags(
-    struct memory_region *, int writable, int executable);
+    struct memory_region *, address_space_perm_t);
 void common_memory_region_cow_fault(struct memory_region *, 
     int location);
 void common_memory_region_fault(struct memory_region *, int location);
@@ -101,8 +107,8 @@ static inline address_space_err_t memory_region_set_location(
 }
 
 static inline address_space_err_t memory_region_set_flags(
-    struct memory_region *mr, int w, int e) {
-  return mr->v.set_flags(mr, w, e);
+    struct memory_region *mr, address_space_perm_t flags) {
+  return mr->v.set_flags(mr, flags);
 }
 
 static inline address_space_err_t address_space_init_region(

@@ -164,18 +164,19 @@ START_TEST (check_common_memory_region_set_location) {
 } END_TEST
 
 START_TEST (check_common_memory_region_set_flags) {
-  fail_unless(common_memory_region_set_flags(NULL, 0, 0) == AS_INVALID);
-  fail_unless(common_memory_region_set_flags(&mr1, 1, 1) == AS_INVALID);
+  fail_unless(common_memory_region_set_flags(NULL, 0) == AS_INVALID);
+  fail_unless(common_memory_region_set_flags(&mr1, AS_WRITABLE | AS_EXECUTABLE) 
+      == AS_INVALID);
 
-  fail_unless(common_memory_region_set_flags(&mr1, 1, 0) == AS_SUCCESS);
+  fail_unless(common_memory_region_set_flags(&mr1, AS_WRITABLE) == AS_SUCCESS);
   fail_unless(mr1.writable == 1);
   fail_unless(mr1.executable == 0);
 
-  fail_unless(common_memory_region_set_flags(&mr1, 0, 1) == AS_SUCCESS);
+  fail_unless(common_memory_region_set_flags(&mr1, AS_EXECUTABLE) == AS_SUCCESS);
   fail_unless(mr1.writable == 0);
   fail_unless(mr1.executable == 1);
 
-  fail_unless(common_memory_region_set_flags(&mr1, 0, 0) == AS_SUCCESS);
+  fail_unless(common_memory_region_set_flags(&mr1, 0) == AS_SUCCESS);
   fail_unless(mr1.writable == 0);
   fail_unless(mr1.executable == 0);
 } END_TEST
