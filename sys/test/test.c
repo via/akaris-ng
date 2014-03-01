@@ -5,6 +5,7 @@
 #include "test_address_space.h"
 #include "test_vmem.h"
 #include "test_slab.h"
+#include "test_elf.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -48,6 +49,10 @@ main_suite() {
   TCase *tc_as = tcase_create("Address Space");
   check_initialize_address_space_tests(tc_as);
   suite_add_tcase(s, tc_as);
+
+  TCase *tc_elf = tcase_create("elf");
+  check_initialize_elf_tests(tc_elf);
+  suite_add_tcase(s, tc_elf);
 
   return s;
 }
