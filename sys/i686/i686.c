@@ -46,6 +46,14 @@ struct kernel *kernel() {
   return (struct kernel *)&i686_kernel;
 }
 
+static const void *get_module(multiboot_info_t *i) {
+  if (i->mods_count == 0) {
+    i686_debug("No modules!\n");
+    return NULL;
+  }
+  i686_debug("Loading: %s\n", ((module_t *)(i->mods_addr))->string);
+  return (const void *)(((module_t *)(i->mods_addr))->mod_start);
+}
 
 void
 i686_kmain(unsigned long magic, multiboot_info_t *info) {
@@ -101,38 +109,13 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_debug("%x contains: %s\n", t1, t1);
 
   i686_address_space_init();
-  struct address_space *as;
-  struct memory_region *mr;
-  address_space_alloc(&as);
-  memory_region_alloc(&mr);
 
-  e1 = virtmem_kernel_alloc(i686_kernel.bsp->kvirt, &a, 1);
-  virtmem_kernel_map_virt_to_phys(i686_kernel.bsp->kvirt, (physaddr_t)as->pd, a);
-  
-  address_space_init_region(as, mr, (virtaddr_t)0x1000000, 0x2000);
-  memory_region_set_flags(mr, 1, 1);
-  memory_region_map(as, mr, NULL);
-
-  const char *teststr = "This is a test string to be copied to userspace.";
-  char testcpybuf[128];
-  char opcodes[] = {0xeb, 0xfe};
-  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void *)0x1000ffc, 
-      (const void *)teststr, strlen(teststr) + 1);
-  virtmem_copy_user_to_kernel(i686_kernel.bsp->kvirt, (void *)&testcpybuf, 
-      as->pd, (const void *)0x1000ffc, strlen(teststr) + 1);
-  i686_debug("testcpybuf contains '%s'\n", testcpybuf);
-  virtmem_copy_kernel_to_user(i686_kernel.bsp->kvirt, as->pd, (void *)0x1000000, 
-      (const void *)opcodes, 2);
-
-
+  const void *module = get_module(info);
+  i686_debug("module: %x\n", module);
   struct thread *thr1;
-  scheduler_thread_alloc(cpu()->sched, &thr1);
-  thread_init(thr1, as);
-  thr1->state = THREAD_RUNNABLE;
-  scheduler_thread_add(cpu()->sched, thr1);
+  thr1 = spawn(module);
+  fprintf("thread: %x\n", thr1);
   scheduler_reschedule(cpu()->sched);
-  virtmem_user_setup_kernelspace(i686_kernel.bsp->kvirt, as->pd);
-  virtmem_set_context(i686_kernel.bsp->kvirt, as->pd);
   scheduler_resume(cpu()->sched);
   while (1);
 }

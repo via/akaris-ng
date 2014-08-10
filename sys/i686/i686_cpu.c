@@ -1,6 +1,8 @@
 #include "assert.h"
+#include "address_space.h"
 #include "kernel.h"
 #include "physical_memory.h"
+#include "virtual_memory.h"
 #include "strfuncs.h"
 #include "i686_cpu.h"
 #include "scheduler.h"
@@ -262,6 +264,7 @@ static void i686_scheduler_resume(struct scheduler *s) {
 
   struct i686_thread *t = NULL;
   scheduler_get_current_thread(s, (struct thread **)&t);
+  virtmem_set_context(cpu()->kvirt, t->t.space->pd);
   i686_userspace_return(&t->ctx);
 }
 
@@ -277,6 +280,7 @@ i686_thread_alloc(struct scheduler *s VAR_UNUSED, struct thread **t) {
     .cs = 0x1B,
     .eflags = 0x0,
     .ss = 0x23,
+    .esp = 0x2000000,
     .eip = 0x1000000
   };
   *t = (struct thread *)new;
