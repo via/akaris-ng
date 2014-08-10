@@ -1,7 +1,10 @@
-#include "abi_elf.h"
 #include "elf.h"
 
-int elf_valid_header(struct elf_context *c) {
-  Elf32_Ehdr *hdr = (Elf32_Ehdr *)c->image;
-  return IS_ELF(*hdr);
+elf_error_t elf_init(struct elf_context *ctx, const void *image) {
+  ctx->hdr = image;
+  if (!IS_ELF(*ctx->hdr)) {
+    return ELF_NOTELF;
+  }
+  return ELF_SUCCESS;
 }
+

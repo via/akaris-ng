@@ -1,6 +1,8 @@
 #ifndef COMMON_TYPES_H
 #define COMMON_TYPES_H
 
+typedef unsigned long long uint64;
+typedef signed long long int64;
 typedef unsigned int    uint32;
 typedef signed int       int32;
 typedef unsigned short  uint16;

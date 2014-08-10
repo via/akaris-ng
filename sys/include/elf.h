@@ -1,16 +1,17 @@
 #ifndef _COMMON_ELF_H
 #define _COMMON_ELF_H
 
-enum elf_error_t {
+#include "abi_elf.h"
+
+typedef enum {
   ELF_SUCCESS,
   ELF_NOTELF,
   ELF_END,
   ELF_UNSUPPORTED,
-};
-
+} elf_error_t;
 
 struct elf_section {
-  virtaddr elf_start;
+  const void *elf_start;
   size_t elf_len;
   int writable : 1;
   int executable : 1;
@@ -18,16 +19,14 @@ struct elf_section {
 };
 
 struct elf_context {
-  const void *image;
+  const Elf32_Ehdr *hdr;
   struct elf_section section;
 };
 
 
-void elf_open(struct elf_context *, const void *image);
-int elf_valid_header(struct elf_context *);
-elf_error_t elf_load(struct elf_context *);
+elf_error_t elf_iterate_program(struct elf_context *);
+elf_error_t elf_init(struct elf_context *, const void *image);
 
-#define ELF_SECTION(x) ((x).section)
 
 #endif
 
