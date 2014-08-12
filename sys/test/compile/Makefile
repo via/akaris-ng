@@ -8,8 +8,7 @@ SRCS+= ${SRCROOT}/test/test.c \
 			 ${SRCROOT}/test/test_vmem.c \
 			 ${SRCROOT}/test/test_physmem.c \
 			 ${SRCROOT}/test/test_address_space.c \
-			 ${SRCROOT}/test/test_elf.c \
-			 ${SRCROOT}/test/testelf.c
+			 ${SRCROOT}/test/test_elf.c
 
 CFLAGS!=pkg-config --cflags check
 LDFLAGS!=pkg-config --libs check

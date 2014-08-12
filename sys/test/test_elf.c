@@ -3,11 +3,24 @@
 
 START_TEST (check_elf_init) {
   struct elf_context ctx;
-  char header[24] = {0x7f, 'E', 'L', 'F','\0'};
-  fail_unless(elf_init(&ctx, header) == ELF_SUCCESS);
+  Elf32_Ehdr header = (Elf32_Ehdr){
+    .e_type = ET_EXEC,
+  };
+  memcpy(header.e_ident, "\177ELF", 5);
 
-  char header2[24] = {0x7f, 'X', 'X', 'X','\0'};
-  fail_unless(elf_init(&ctx, header2) == ELF_NOTELF);
+  fail_unless(elf_init(&ctx, &header) == ELF_SUCCESS);
+
+  Elf32_Ehdr header2 = (Elf32_Ehdr){
+    .e_type = ET_EXEC,
+  };
+  memcpy(header2.e_ident, "XXX", 4);
+  fail_unless(elf_init(&ctx, &header2) == ELF_NOTELF);
+
+  Elf32_Ehdr header3 = (Elf32_Ehdr){
+    .e_type = ET_REL,
+  };
+  memcpy(header3.e_ident, "\177ELF", 5);
+  fail_unless(elf_init(&ctx, &header3) == ELF_UNSUPPORTED);
 } END_TEST
 
 void check_elf_setup() {
