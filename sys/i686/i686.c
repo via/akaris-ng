@@ -114,7 +114,7 @@ i686_kmain(unsigned long magic, multiboot_info_t *info) {
   i686_debug("module: %x\n", module);
   struct thread *thr1;
   thr1 = spawn(module);
-  fprintf("thread: %x\n", thr1);
+  i686_debug("thread: %x\n", thr1);
   scheduler_reschedule(cpu()->sched);
   scheduler_resume(cpu()->sched);
   while (1);

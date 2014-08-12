@@ -263,7 +263,13 @@ i686_int_entry(struct i686_context *c) {
 static void i686_scheduler_resume(struct scheduler *s) {
 
   struct i686_thread *t = NULL;
-  scheduler_get_current_thread(s, (struct thread **)&t);
+  if (scheduler_get_current_thread(s, (struct thread **)&t) 
+      != SCHED_SUCCESS) {
+    /* TODO: No runnable tasks, so idle */
+    kernel()->debug("No runnable tasks!\n");
+    while(1);
+  }
+
   virtmem_set_context(cpu()->kvirt, t->t.space->pd);
   i686_userspace_return(&t->ctx);
 }
@@ -280,8 +286,8 @@ i686_thread_alloc(struct scheduler *s VAR_UNUSED, struct thread **t) {
     .cs = 0x1B,
     .eflags = 0x0,
     .ss = 0x23,
-    .esp = 0x2000000,
-    .eip = 0x1000000
+    .esp = 0x3000000,
+    .eip = 0x100000
   };
   *t = (struct thread *)new;
   return SCHED_SUCCESS;

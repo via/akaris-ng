@@ -23,6 +23,9 @@ common_scheduler_reschedule(struct scheduler *s) {
 scheduler_err_t 
 common_scheduler_get_current_thread(struct scheduler *s,
     struct thread **t) {
+  if (!s->current) {
+    return SCHED_NOTFOUND;
+  }
   *t = s->current;
   return SCHED_SUCCESS;
 }

@@ -10,6 +10,7 @@
 
 extern const int highstart;
 
+
 static void i686_create_initial(struct kernel *k, const multiboot_info_t *info) {
 
   memory_map_t *entry = (memory_map_t *)info->mmap_addr;

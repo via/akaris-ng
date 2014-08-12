@@ -14,9 +14,9 @@ struct elf_section {
   const void *elf_start;
   void *memaddr;
   size_t elf_len;
-  int writable : 1;
-  int executable : 1;
-  int readable : 1;
+  unsigned int writable : 1;
+  unsigned int executable : 1;
+  unsigned int readable : 1;
 };
 
 struct elf_context {
